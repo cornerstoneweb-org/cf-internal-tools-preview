@@ -478,14 +478,16 @@ export const CONTENT = {
       ],
     },
 
-    { id: "resources", icon: "book", accent: "var(--sec-default)", title: "Resources", blurb: "Coming in a future release.", enabled: false, layout: "compact", cards: [] },
-    { id: "tutorials", icon: "play", accent: "var(--sec-default)", title: "Tutorials", blurb: "Coming in a future release.", enabled: false, layout: "compact", cards: [] },
+    // Parked sections are named in Home's "Coming later" tile unless
+    // teaser: false.
+    { id: "budgets", icon: "doc", accent: "var(--sec-default)", title: "Budget Report Access", blurb: "Coming in a future release.", enabled: false, layout: "compact", cards: [] },
     {
       id: "guides", icon: "book",
       accent: "var(--sec-guides)",
       title: "Reference Guides",
       blurb: "How to do the things that come up.",
       enabled: false,   // parked for V2. Cards below are kept, not shown.
+      teaser: false,    // and not named in the "Coming later" tile
       layout: "compact",
       reviewEvery: 12,
       cards: [

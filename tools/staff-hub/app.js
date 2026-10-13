@@ -135,14 +135,16 @@ const pillClass = (s) => (s === "overdue" ? "pill-warn" : s === "due-soon" ? "pi
 
 /* ================= data helpers ================= */
 // Facilities shows only when its flag in site.config.js is on, or on a
-// preview host so it can still be tested. Off, its tile, card and route
-// disappear.
+// preview host so it can still be tested. Off, its tile and route disappear
+// and its Requests card reads "Coming soon".
 const PREVIEW = ["localhost", "127.0.0.1", ...PREVIEW_HOSTS].includes(location.hostname);
 const FACILITIES_ON = PREVIEW || TOOLS.find((t) => t.id === "facilities")?.enabled === true;
 const hiddenUrl = (url) => !FACILITIES_ON && /^#\/?facilities/.test(url ?? "");
 const SECTIONS = CONTENT.sections.map((s) => ({
   ...s,
-  cards: s.cards.filter((c) => !c.links?.some((l) => hiddenUrl(l.url))),
+  cards: s.cards.map((c) => c.links?.some((l) => hiddenUrl(l.url))
+    ? { ...c, links: c.links.map((l) => hiddenUrl(l.url) ? { label: l.label, url: null, status: "pending" } : l) }
+    : c),
 }));
 const QUICK_ACTIONS = (CONTENT.quickActions ?? []).filter((a) => !hiddenUrl(a.url));
 const sections = () => SECTIONS;
@@ -304,7 +306,7 @@ function homeView() {
   let browse = "";
   if (CONFIG.features.browse) {
     const live = navSections().filter((s) => s.enabled);
-    const parked = CONFIG.features.showDisabled ? navSections().filter((s) => !s.enabled) : [];
+    const parked = CONFIG.features.showDisabled ? navSections().filter((s) => !s.enabled && s.teaser !== false) : [];
     const [lead, ...rest] = live;
     const tile = (s) => `<a class="bt" href="#/${esc(s.id)}" style="--sec:${ac(s)}">
         <span class="bt-ic" aria-hidden="true">${ICONS[s.icon] ?? ICONS.grid}</span>
