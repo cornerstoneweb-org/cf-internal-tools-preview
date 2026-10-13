@@ -1,0 +1,22 @@
+#!/bin/sh
+# 1. Block anything that should never be public (scripts/privacy-check.mjs).
+# 2. Stamp a fresh version into each tool's index.html so browsers load the new
+# files right after a push. See scripts/stamp-version.mjs.
+# GitHub Desktop runs hooks with a bare PATH, so look where Node usually lives.
+PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.volta/bin:$PATH"
+for d in "$HOME"/.nvm/versions/node/*/bin; do [ -d "$d" ] && PATH="$d:$PATH"; done
+export PATH
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "Node not found, so the privacy check cannot run. Commit blocked." >&2
+  echo "Install Node, or see docs/privacy.md." >&2
+  exit 1
+fi
+cd "$(git rev-parse --show-toplevel)" || exit 1
+
+# Privacy first. A failure here blocks the commit. See docs/privacy.md.
+node scripts/privacy-check.mjs || exit 1
+
+changed=$(node scripts/stamp-version.mjs) || { echo "stamp-version failed, committing anyway." >&2; exit 0; }
+[ -n "$changed" ] && echo "$changed" | xargs git add --
+exit 0

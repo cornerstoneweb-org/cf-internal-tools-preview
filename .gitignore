@@ -1,0 +1,43 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Secrets: never commit. (config/supabase.config.js holds only PUBLIC values
+# and is committed on purpose.)
+shared/js/env.js
+.env
+.env.*
+
+# macOS launcher is kept (it is useful to everyone), listed here so it
+# is obvious it was a deliberate include:  Start Preview.command
+
+# Local scratch
+.scratch/
+*.local.*
+
+# The brand asset library lives OUTSIDE this repo, at
+# ~/Projects/cornerstone/brand-assets/ (155MB of print-resolution files).
+# Only web-optimized derivatives under shared/assets/brand/ are committed.
+# These patterns catch it if anyone drops a copy back in here.
+Graphics/
+brand-assets/
+*.psd
+*.eps
+
+# Privacy: raw data and documents about people never live in this repo.
+# Source workbooks stay in OneDrive. See docs/privacy.md.
+*.xlsx
+*.xlsm
+*.xls
+*.csv
+*.tsv
+*.docx
+*.doc

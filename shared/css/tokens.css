@@ -1,0 +1,82 @@
+/* Cornerstone internal tools design tokens.
+
+   2026-09-23: Apple-leaning restyle. Same CF colors, calmer ground
+   (#F5F5F7), softer lines, bigger radii, Inter with tight headline
+   tracking, pill buttons. Dark Jungle Green (#16211C) is the hero ground.
+
+   Original notes:
+   Taken from cornerstoneweb.org, read out of its stylesheet 2026-09-20:
+   Manrope with headings at 800, accent #0693B2 carrying BLACK text,
+   secondary text #4A5464, 8px radius.
+
+   Three CF blues exist. The asset library says #07AED9, the Canva export
+   says #32B9DB, the website says #0693B2. The tools use the website value:
+   it is what staff already see, and it is the only one that clears contrast
+   on white. See 00_Program/brand-notes.md. */
+
+:root {
+  /* Brand */
+  --teal:       #0693B2;
+  --teal-d:     #04758F;
+  --teal-wash:  #E7F4F8;
+  --orange:     #FE8730;
+  --orange-d:   #B65B0D;
+  --orange-wash:#FFF1E4;
+  --lime:       #CDD943;
+  --lime-d:     #6B7409;
+  --lime-wash:  #F5F8DF;
+  --cyan:       #32B9DB;
+  --jungle:     #16211C;   /* Dark Jungle Green, the hero ground */
+  --seashell:   #F1F3F0;
+
+  /* Ground */
+  --bg:      #F5F5F7;
+  --card:    #FFFFFF;
+  --line:    #E8E8ED;
+  --line-2:  #D2D2D7;
+
+  /* Text */
+  --ink:     #1D1D1F;
+  --slate:   #515760;   /* body grey, 7:1 on white */
+  --faint:   #6E6E73;   /* small grey, 5:1 on white, 4.6:1 on --bg */
+
+  /* Section accents. Every one is a CF color: the website teal and two of
+     its shades, plus the brand orange and lime. Color here means "which
+     section am I in", not decoration, so the nav dot, the home card and the
+     section page all use the same one. */
+  --sec-requests: var(--orange);
+  --sec-software: var(--teal);
+  --sec-hr:       var(--lime);      /* bright for edges; text mixes darker below */
+  --sec-values:   #04758F;          /* deep teal */
+  --sec-guides:   #32B9DB;          /* light cyan, the Canva CF blue */
+  --sec-brand:    #07AED9;          /* cerulean, the asset library blue */
+  --sec-default:  var(--teal);
+
+  /* Roles */
+  --accent:  var(--teal);
+  --warn:    var(--orange);
+  --ok:      var(--lime-d);
+
+  /* Shape */
+  --r:    12px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --shadow:    0 1px 2px rgba(0,0,0,.04), 0 10px 30px rgba(0,0,0,.05);
+  --shadow-up: 0 2px 4px rgba(0,0,0,.05), 0 18px 44px rgba(0,0,0,.10);
+  --glass:     rgba(251,251,253,.78);   /* frosted bars */
+  --ease:      cubic-bezier(.25,.1,.25,1);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 40px;
+  --space-6: 64px;
+
+  --nav-h: 52px;
+  --max-width: 1180px;
+
+  --font: Inter, -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif;
+
+  color-scheme: light;
+}

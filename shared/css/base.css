@@ -1,0 +1,228 @@
+/* Shared app shell for every CF internal tool: top nav, search, tab bar, pills.
+   Apple-leaning since 2026-09-23: a frosted bar across the top instead of a
+   sidebar, big tight headlines, pill buttons, soft shadows instead of lines. */
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: calc(var(--nav-h) + 16px); }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "cv11", "ss01";
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+}
+
+h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.022em; line-height: 1.1; }
+a { color: var(--teal-d); }
+::selection { background: color-mix(in srgb, var(--teal) 30%, white); color: var(--ink); }
+:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; border-radius: 6px; }
+
+.skip {
+  position: absolute; left: -9999px; z-index: 40;
+  background: var(--teal-d); color: #fff; font-weight: 600;
+  padding: var(--space-2) var(--space-3); border-radius: 999px;
+}
+.skip:focus { left: var(--space-3); top: var(--space-3); }
+
+/* ---------- Global nav (frosted bar) ---------- */
+.gnav {
+  position: sticky; top: 0; z-index: 20;
+  background: var(--glass);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid rgba(0,0,0,.07);
+}
+.gnav-in {
+  max-width: var(--max-width); margin: 0 auto; padding: 0 var(--space-5);
+  height: var(--nav-h); display: flex; align-items: center; gap: var(--space-4);
+}
+.gnav-brand { display: flex; flex: none; }
+.gnav-brand img { height: 22px; width: auto; display: block; }
+.gnav-links {
+  display: flex; align-items: center; gap: 2px; min-width: 0;
+  overflow-x: auto; scrollbar-width: none;
+}
+.gnav-links::-webkit-scrollbar { display: none; }
+.gnav-links a {
+  padding: 6px 12px; border-radius: 999px; white-space: nowrap;
+  font-size: 13.5px; font-weight: 500; color: #424245; text-decoration: none;
+  transition: color .2s var(--ease), background .2s var(--ease);
+}
+.gnav-links a:hover { color: var(--ink); }
+.gnav-links a.is-active {
+  color: var(--ink); font-weight: 600;
+  background: color-mix(in srgb, var(--sec, var(--teal)) 12%, transparent);
+}
+.gnav-right { margin-left: auto; display: flex; align-items: center; gap: 6px; flex: none; }
+.icon-btn {
+  width: 36px; height: 36px; border-radius: 50%; border: 0; background: none;
+  display: grid; place-items: center; color: var(--ink); cursor: pointer;
+  transition: background .2s var(--ease);
+}
+.icon-btn:hover, .icon-btn[aria-expanded="true"] { background: rgba(0,0,0,.06); }
+.icon-btn svg { width: 18px; height: 18px; }
+.gnav-cta { margin: 0 8px 0 4px; padding: 7px 14px; font-size: 13px; }
+
+/* Avatar + its little account menu */
+.me { position: relative; }
+.avatar {
+  width: 32px; height: 32px; border-radius: 50%; flex: none; border: 0; padding: 0; cursor: pointer;
+  background: linear-gradient(135deg, var(--teal-d), var(--cyan)); color: #fff;
+  display: grid; place-items: center; font: 600 12px var(--font); letter-spacing: .02em;
+}
+.me-menu {
+  position: absolute; right: 0; top: calc(100% + 10px); width: 260px;
+  background: rgba(255,255,255,.92);
+  -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px);
+  border: 1px solid rgba(0,0,0,.06); border-radius: 16px; box-shadow: var(--shadow-up);
+  padding: 14px; font-size: 14px;
+}
+.me-menu b { display: block; font-weight: 600; }
+.me-menu span { display: block; color: var(--faint); font-size: 12.5px; overflow-wrap: anywhere; }
+.me-menu hr { border: 0; border-top: 1px solid var(--line); margin: 12px 0 8px; }
+.me-menu button {
+  width: 100%; text-align: left; background: none; border: 0; padding: 8px 10px; margin: 0 -2px;
+  border-radius: 10px; font: inherit; font-size: 14px; color: var(--ink); cursor: pointer;
+}
+.me-menu button:hover { background: var(--bg); }
+
+/* ---------- Search panel (drops out of the nav) ---------- */
+.gsearch { border-top: 1px solid rgba(0,0,0,.05); }
+body:not(.search-open) .gsearch { display: none; }
+.gsearch-in { max-width: var(--max-width); margin: 0 auto; padding: 14px var(--space-5) 16px; }
+.search {
+  position: relative; display: flex; align-items: center; gap: 12px;
+  max-width: 720px;
+  background: var(--card); border: 1px solid var(--line-2);
+  border-radius: 14px; padding: 12px 16px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+.search svg { width: 18px; height: 18px; color: var(--faint); flex: none; }
+.search input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font: inherit; font-size: 17px; color: var(--ink); letter-spacing: -.01em; }
+.search input::placeholder { color: var(--faint); }
+.search input::-webkit-search-cancel-button { display: none; }
+.search:focus-within { border-color: var(--teal); box-shadow: 0 0 0 4px rgba(6,147,178,.14); }
+.search kbd {
+  font-family: var(--font); font-size: 11px; font-weight: 500;
+  color: var(--faint); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 6px; padding: 3px 7px;
+}
+.search-clear {
+  width: 24px; height: 24px; border-radius: 50%; border: 0; cursor: pointer; flex: none;
+  background: #C7C7CC; color: #fff; font-size: 15px; line-height: 1; display: grid; place-items: center;
+}
+.search-clear:hover { background: var(--faint); }
+
+/* ---------- Buttons ---------- */
+.btn {
+  background: var(--teal-d); color: #fff; border: 0;
+  border-radius: 999px; padding: 11px 22px;
+  font: inherit; font-size: 14.5px; font-weight: 600; letter-spacing: -.005em;
+  text-decoration: none; white-space: nowrap; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: background .2s var(--ease), transform .2s var(--ease);
+}
+.btn:hover { background: #035F74; color: #fff; }
+.btn:active { transform: scale(.98); }
+.btn-ghost { background: rgba(0,0,0,.05); color: var(--ink); }
+.btn-ghost:hover { background: rgba(0,0,0,.09); color: var(--ink); }
+
+/* ---------- Main ---------- */
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.content {
+  flex: 1; width: 100%; max-width: var(--max-width); margin: 0 auto;
+  padding: var(--space-4) var(--space-5) var(--space-6);
+}
+
+/* ---------- Phone tab bar ---------- */
+.tabbar { display: none; }
+
+/* ---------- Pills ---------- */
+.pill {
+  font-size: 11px; font-weight: 600; white-space: nowrap;
+  padding: 3px 9px; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
+.pill-ok   { background: var(--lime-wash);   color: var(--lime-d); }
+.pill-warn { background: var(--orange-wash); color: var(--orange-d); }
+.pill-mute { background: #EEEEF1;            color: var(--faint); }
+/* Coming soon, in the section's own accent. 12% tint ground, 52% mix text:
+   the highest mix that clears 4.5:1 for every CF accent, checked on white
+   and on its own tint. Do not raise it without re-checking lime. */
+.pill-soon {
+  background: color-mix(in srgb, var(--sec, var(--teal)) 12%, #fff);
+  color: color-mix(in srgb, var(--sec, var(--teal)) 52%, black);
+}
+.pill-soon::before { display: none; }
+
+/* ---------- Narrow ---------- */
+@media (max-width: 900px) {
+  .gnav-in { padding: 0 var(--space-3); gap: var(--space-3); }
+  .gsearch-in { padding: 12px var(--space-3) 14px; }
+  .content { padding: var(--space-3) var(--space-3) var(--space-5); }
+  .search kbd { display: none; }
+}
+
+/* Phone: the section links move to a tab bar at the bottom, iOS style. */
+@media (max-width: 720px) {
+  :root { --nav-h: 48px; }
+  .gnav-links, .gnav-cta { display: none; }
+  .gnav-brand img { height: 20px; }
+  .search input { font-size: 16px; }   /* 16px stops iOS zooming on focus */
+  body { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+  .tabbar {
+    display: flex; justify-content: space-around; align-items: stretch;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    height: calc(58px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom);
+    background: var(--glass);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+    border-top: 1px solid rgba(0,0,0,.08);
+  }
+  .tabbar a, .tabbar button {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    background: none; border: 0; padding: 0; font: 500 10.5px var(--font); color: #8E8E93;
+    text-decoration: none; cursor: pointer;
+  }
+  .tabbar svg { width: 24px; height: 24px; }
+  .tabbar .is-active { color: var(--teal-d); }
+  .me-menu { right: -6px; }
+}
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* ---------- Tool directory (repo root index) ---------- */
+.tool-list {
+  list-style: none; padding: 0; margin: var(--space-4) 0 0;
+  display: grid; gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+.tool-card {
+  display: block; padding: var(--space-4);
+  background: var(--card); border-radius: var(--r-lg); box-shadow: var(--shadow);
+  text-decoration: none; color: inherit;
+  transition: box-shadow .2s var(--ease), transform .2s var(--ease);
+}
+.tool-card:hover { box-shadow: var(--shadow-up); transform: translateY(-2px); }
+.tool-card h2 { font-size: 1.1rem; margin-bottom: var(--space-1); }
+.tool-card p { margin: 0; color: var(--slate); font-size: .9rem; }
+.tool-card .owner { display: block; margin-top: var(--space-2); font-size: .75rem; color: var(--faint); font-weight: 600; }
+
+/* Toasts (shared/js/ui.js toast()). Sits above the phone tab bar. */
+.cf-toast {
+  position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); z-index: 300;
+  transform: translateX(-50%); max-width: calc(100% - 32px);
+  background: var(--jungle); color: #fff; padding: 12px 18px; border-radius: 14px;
+  box-shadow: var(--shadow-up); font-weight: 600; font-size: .92rem;
+  animation: cf-toast-in .25s var(--ease);
+}
+@keyframes cf-toast-in { from { opacity: 0; transform: translate(-50%, 8px); } }
+@media (max-width: 720px) { .cf-toast { bottom: calc(84px + env(safe-area-inset-bottom)); } }

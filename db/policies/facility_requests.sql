@@ -1,0 +1,17 @@
+-- facility_requests, facility_updates, facility-photos bucket
+-- Full definitions: migrations/0005_facility_requests.sql
+--
+-- Who can do what
+--   Not signed in / non-CF account : nothing
+--   CF staff     : submit; see and comment on their OWN requests only;
+--                  never change status, priority, assignee or approval;
+--                  never see team-only notes; photos on own requests only
+--   Facilities   : see and update all requests; post team-only notes; all photos
+--   Admin        : everything Facilities can, plus approve / decline
+--   Server-set   : requester, status on submit, timestamps, approval decider
+--
+-- Tested 2026-10-06 as anon, staff A, staff B, a non-CF account, Joe
+-- (facilities) and Ryan (admin), inside a rolled-back transaction:
+-- 24 of 24 checks passed. Security advisor: only expected notices
+-- (private.app_roles has no policies on purpose; public.my_roles is a
+-- definer function on purpose and returns only the caller's own roles).
