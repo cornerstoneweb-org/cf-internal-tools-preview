@@ -326,9 +326,8 @@ function homeView() {
           return `<li><a class="bt-row" href="${esc(live.url)}"${out}>${esc(c.title)}${ICONS.chevron}</a></li>`;
         }).join("")}</ul>
       </div>` : "";
-    const later = parked.length ? `<div class="bt bt-later" aria-disabled="true">
+    const later = parked.length ? `<div class="bt bt-later" aria-disabled="true" aria-label="${esc(L.laterTitle)}">
         <span class="bt-ic" aria-hidden="true">${ICONS.book}</span>
-        <span class="bt-tag">${esc(L.laterTitle)}</span>
         <h3>${esc(parked.map((s) => s.title).join(", "))}</h3>
         <span class="bt-go">${esc(L.comingSoon)}</span>
       </div>` : "";
