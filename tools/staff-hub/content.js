@@ -124,10 +124,10 @@ export const CONTENT = {
   //   link / linkLabel: optional call to action.
   announcement: {
     level: "info",
-    text: "The Staff Hub is new. Tell Ryan what's missing or wrong.",
-    link: "mailto:ryanb@cornerstoneweb.org?subject=Staff%20Hub%20feedback",
-    linkLabel: "Send feedback",
-    until: null,
+    text: "Employee Benefits Open Enrollment meeting: Wed, Oct 28, 10 AM, Livermore campus, 4/5 Grade Room.",
+    link: null,
+    linkLabel: null,
+    until: "2026-10-28",
   },
 
   sections: [
