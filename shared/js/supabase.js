@@ -6,7 +6,7 @@ let client = null;
 
 export async function getClient() {
   if (client) return client;
-  const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+  const { createClient } = await import("../vendor/supabase-js-2.117.3.js");
   client = createClient(SUPABASE.url, SUPABASE.publishableKey, {
     auth: {
       // PKCE returns ?code=... instead of #access_token=..., so the sign-in
