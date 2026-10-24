@@ -15,4 +15,5 @@ short version, which is not optional:
 - When unsure whether something is public, treat it as private and ask Ryan.
 
 Other conventions: `docs/conventions.md`. Architecture: `docs/architecture.md`.
-Leave file changes uncommitted for Ryan to review and push.
+Push rule: Claude may commit and push to this preview repo freely. Changes to the
+live repo (cf-internal-tools) are pushed only after Ryan says "ship it".

@@ -58,6 +58,10 @@ export const CONFIG = {
   },
 
   labels: {
+    // Announcement banner tag, by level (content.js announcement.label overrides)
+    annInfo: "Heads up",
+    annUrgent: "Important",
+
     // Corner badge on the preview site (PREVIEW_HOSTS in site.config.js)
     previewBadge: "Preview",
     previewBadgeNote: "Preview site. Not what staff see.",
