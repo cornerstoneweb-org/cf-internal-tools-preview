@@ -92,19 +92,36 @@
 }
 
 /* ---------- Announcement ---------- */
+/* Solid brand color so it reads as "not a card". Info = deep teal with white
+   text (5:1). Urgent = CF orange with dark text. */
 .ann {
-  display: flex; align-items: center; gap: var(--space-3);
-  background: var(--card); border-radius: 16px;
-  padding: 12px 14px 12px 18px; margin: var(--space-2) 0 var(--space-3); box-shadow: var(--shadow);
+  display: flex; align-items: center; gap: 14px;
+  background: var(--teal-d); color: #fff; border-radius: 16px;
+  padding: 14px 12px 14px 16px; margin: var(--space-2) 0 var(--space-3);
+  box-shadow: 0 2px 4px rgba(4,117,143,.18), 0 12px 28px rgba(4,117,143,.22);
 }
-.ann::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); flex: none; }
-.ann-urgent::before { background: var(--orange); }
-.ann p { margin: 0; flex: 1; font-size: .94rem; color: var(--slate); }
-.ann-cta { color: var(--teal-d); font-weight: 600; text-decoration: none; margin-left: 6px; white-space: nowrap; }
-.ann-cta::after { content: " ›"; }
-.ann-cta:hover { text-decoration: underline; }
-#ann-x { flex: none; width: 28px; height: 28px; border-radius: 50%; background: none; border: 0; cursor: pointer; color: var(--faint); font-size: 1.25rem; line-height: 1; }
-#ann-x:hover { background: var(--bg); color: var(--ink); }
+.ann-urgent { background: var(--orange); color: var(--ink); box-shadow: 0 2px 4px rgba(182,91,13,.18), 0 12px 28px rgba(254,135,48,.28); }
+.ann-ic { flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: rgba(255,255,255,.16); }
+.ann-urgent .ann-ic { background: rgba(0,0,0,.08); }
+.ann-ic svg { width: 22px; height: 22px; }
+.ann-body { flex: 1; min-width: 0; }
+.ann-tag { display: block; font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .85; margin-bottom: 2px; }
+.ann p { margin: 0; font-size: 1rem; font-weight: 600; line-height: 1.35; color: inherit; }
+.ann-cta {
+  flex: none; background: #fff; color: var(--teal-d); font-weight: 600; font-size: .9rem;
+  text-decoration: none; padding: 8px 14px; border-radius: 999px; white-space: nowrap;
+}
+.ann-urgent .ann-cta { color: var(--orange-d); }
+.ann-cta:hover { filter: brightness(.95); }
+#ann-x { flex: none; width: 32px; height: 32px; border-radius: 50%; background: none; border: 0; cursor: pointer; color: inherit; opacity: .75; font-size: 1.4rem; line-height: 1; }
+#ann-x:hover { opacity: 1; background: rgba(255,255,255,.16); }
+.ann-urgent #ann-x:hover { background: rgba(0,0,0,.08); }
+@media (max-width: 600px) {
+  .ann { flex-wrap: wrap; align-items: flex-start; gap: 12px; }
+  .ann-ic { width: 34px; height: 34px; border-radius: 10px; }
+  .ann-body { flex-basis: calc(100% - 34px - 32px - 24px); }
+  .ann-cta { order: 4; margin-left: 46px; }
+}
 
 /* ---------- Quick links as app icons ---------- */
 .apps { display: flex; flex-wrap: wrap; gap: 28px 34px; }

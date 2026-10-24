@@ -82,6 +82,7 @@ export const CONTENT = {
     { group: "Federal", title: "Know Your Rights: Workplace Discrimination", agency: "EEOC", file: "fed-eeo-know-your-rights.pdf" },
     { group: "Federal", title: "Employee Polygraph Protection Act", agency: "U.S. Department of Labor", file: "fed-polygraph.pdf" },
     { group: "Federal", title: "Uniformed Services Employment Rights (USERRA)", agency: "U.S. Department of Labor", file: "fed-userra.pdf" },
+    { group: "Federal", title: "Medicare Part D Creditable Coverage Notice", agency: "Cornerstone HR", file: "../hr/medicare-part-d-notice.pdf" },
   ],
   hrDocs: {
     payDatesPdf: "../../shared/assets/docs/hr/2026-Pay-Dates.pdf",
@@ -122,6 +123,8 @@ export const CONTENT = {
   //   level:  "info" (cyan) or "urgent" (orange)
   //   until:  "YYYY-MM-DD", hides itself after this date. Optional.
   //   link / linkLabel: optional call to action.
+  //   label:  optional tag above the text, e.g. "HR" or "Benefits".
+  //           Defaults to "Heads up" (info) or "Important" (urgent).
   announcement: {
     level: "info",
     text: "Employee Benefits Open Enrollment meeting: Wed, Oct 28, 10 AM, Livermore campus, 4/5 Grade Room.",

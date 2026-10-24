@@ -923,6 +923,7 @@ function adminView() {
 
 /* ================= announcement ================= */
 const KEY = "cf-staffhub-dismissed";
+const ICON_ANN = svg('<path d="M4 10v4a1 1 0 0 0 1 1h2l6 4V5L7 9H5a1 1 0 0 0-1 1z"/><path d="M16.5 9a4 4 0 0 1 0 6"/><path d="M19 6.5a7.5 7.5 0 0 1 0 11"/>');
 const hash = (s) => { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return String(h); };
 
 function announcementHTML() {
@@ -934,9 +935,13 @@ function announcementHTML() {
   }
   const id = hash(a.text + (a.link ?? ""));
   try { if (localStorage.getItem(KEY) === id) return ""; } catch { /* show it */ }
-  const cta = a.link ? ` <a class="ann-cta" href="${esc(a.link)}">${esc(a.linkLabel ?? "Details")}</a>` : "";
-  return `<div class="ann ann-${esc(a.level ?? "info")}" id="ann" data-id="${esc(id)}" role="status">
-      <p>${esc(a.text)}${cta}</p>
+  const level = a.level === "urgent" ? "urgent" : "info";
+  const tag = a.label ?? (level === "urgent" ? CONFIG.labels.annUrgent : CONFIG.labels.annInfo);
+  const cta = a.link ? `<a class="ann-cta" href="${esc(a.link)}">${esc(a.linkLabel ?? "Details")}</a>` : "";
+  return `<div class="ann ann-${level}" id="ann" data-id="${esc(id)}" role="status">
+      <span class="ann-ic" aria-hidden="true">${ICON_ANN}</span>
+      <div class="ann-body"><span class="ann-tag">${esc(tag)}</span><p>${esc(a.text)}</p></div>
+      ${cta}
       <button type="button" id="ann-x" aria-label="Dismiss">&times;</button>
     </div>`;
 }
