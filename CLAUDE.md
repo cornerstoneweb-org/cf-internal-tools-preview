@@ -17,3 +17,15 @@ short version, which is not optional:
 Other conventions: `docs/conventions.md`. Architecture: `docs/architecture.md`.
 Push rule: Claude may commit and push to this preview repo freely. Changes to the
 live repo (cf-internal-tools) are pushed only after Ryan says "ship it".
+
+## Local design workflow
+
+1. Design: edit this clone locally and view it at
+   http://localhost:5173/tools/staff-hub/ (start with
+   `node scripts/serve.mjs --no-open --port 5173`; it reloads on save).
+   Don't commit or push during this stage.
+2. Test: commit and push to this preview repo when Ryan asks.
+3. Live: copy to the live repo only after Ryan says "ship it".
+
+Port 4173 on Ryan's Mac is an always-on server for the live clone, so it
+won't show changes made here.
