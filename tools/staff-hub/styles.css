@@ -31,65 +31,48 @@
 .sec-head h2 { font-size: clamp(1.6rem, 3.4vw, 2.1rem); letter-spacing: -.03em; }
 .sec-head p { margin: 6px 0 0; color: var(--faint); font-size: 1.06rem; letter-spacing: -.01em; }
 
-/* ---------- Hero ---------- */
+/* ---------- Hero ("Connected", 2026-10-25) ---------- */
+/* Dark panel framed in white. --hue is the visit's CF color (green, blue or
+   orange), set by hero-pixels.js; it colors the accent line, the glow and
+   the gathered CF mark. */
 .hero {
-  position: relative; overflow: hidden; border-radius: var(--r-xl);
-  margin-top: var(--space-2);
-  display: flex; align-items: flex-end;
+  --hue: var(--lime);
+  position: relative; overflow: hidden; isolation: isolate;
+  border-radius: 24px; border: 7px solid #fff; margin-top: var(--space-2);
+  min-height: 480px; padding: 48px; display: flex; flex-direction: column;
   background:
-    radial-gradient(900px 420px at 88% -10%, rgba(50,185,219,.55), transparent 60%),
-    radial-gradient(700px 380px at 105% 110%, rgba(205,217,67,.35), transparent 60%),
-    linear-gradient(160deg, #0B2A33 0%, var(--jungle) 70%);
-  color: #fff;
+    radial-gradient(60% 80% at 100% 0%, color-mix(in srgb, var(--hue) 32%, transparent), transparent 60%),
+    #232625;
+  color: #fff; box-shadow: 0 18px 40px rgba(107,116,9,.14);
 }
-.hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.hero.has-photo::after {
-  content: ""; position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,.05) 20%, rgba(0,0,0,.7) 100%);
+.hero-pixels { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
+.hero-pixels .hp-bg { fill: #333735; }
+.hero-pixels .hp-p {
+  fill: color-mix(in srgb, var(--hue) 45%, #232625); opacity: .55;
+  transition: transform 1.6s cubic-bezier(.16,1,.3,1), fill 1.2s ease, opacity 1.2s ease;
 }
-.hero-text { position: relative; z-index: 1; padding: 72px 64px 56px; width: 100%; }
-.hero-date { margin: 0 0 14px; font-size: .9rem; font-weight: 600; letter-spacing: .01em; color: #fff; }
-.hero.has-photo .hero-date { color: #fff; opacity: .9; }
-.hero h1 { margin: 0; color: #fff; font-size: clamp(2.5rem, 6.4vw, 4.25rem); letter-spacing: -.04em; line-height: 1.02; text-wrap: balance; }
-/* One line when it fits (same width as the search bar), two balanced
-   lines when it does not. */
-.hero-sub { margin: 16px 0 0; font-size: clamp(1.05rem, 2.2vw, 1.3rem); color: rgba(255,255,255,.72); letter-spacing: -.012em; max-width: 620px; line-height: 1.4; text-wrap: balance; }
-.hero-mark { position: absolute; right: 64px; bottom: 52px; width: 120px; opacity: .14; pointer-events: none; }
-.hero-place {
-  position: absolute; z-index: 1; top: 16px; right: 16px;
-  font-size: .75rem; font-weight: 600; color: #fff;
-  background: rgba(0,0,0,.35); backdrop-filter: blur(8px);
-  padding: 4px 11px; border-radius: 999px;
-}
+.hero-pixels .hp-p.in { fill: var(--hue); opacity: 1; }
+.hero-text { position: relative; max-width: 540px; margin-top: auto; }
+.hero h1 { margin: 0; color: #fff; font-size: clamp(2.6rem, 5.4vw, 4.2rem); font-weight: 600; letter-spacing: -.035em; line-height: 1.05; }
+.hero h1 span { color: var(--hue); }
+.hero-sub { margin: 18px 0 0; max-width: 46ch; color: #B9BDBA; font-size: 1rem; line-height: 1.5; }
+.hero-foot { position: relative; display: flex; justify-content: space-between; gap: 12px; margin: 36px 0 0; font-size: .85rem; color: #A6ABA7; }
 /* The hero search box on Home. A real input; results render under the hero. */
 .spot {
-  margin-top: 36px; width: 100%; max-width: 620px; height: 54px;
+  margin-top: 26px; width: 100%; height: 54px;
   display: flex; align-items: center; gap: 12px; padding: 0 18px;
-  border-radius: 14px; border: 1px solid rgba(255,255,255,.18);
-  background: rgba(255,255,255,.12);
-  -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
-  color: rgba(255,255,255,.66); font: inherit; font-size: 1.02rem; text-align: left; cursor: text;
-  transition: background .2s var(--ease), border-color .2s var(--ease);
+  border-radius: 12px; background: #fff; color: var(--slate);
+  font: inherit; font-size: 1rem; cursor: text;
 }
-.spot:hover { background: rgba(255,255,255,.17); border-color: rgba(255,255,255,.28); }
-.spot:focus-within { background: rgba(255,255,255,.17); border-color: rgba(255,255,255,.4); }
-.spot input {
-  flex: 1; min-width: 0; border: 0; outline: 0; background: none;
-  font: inherit; color: #fff; letter-spacing: -.01em;
-}
-.spot input::placeholder { color: rgba(255,255,255,.66); }
+.spot:focus-within { box-shadow: 0 0 0 4px color-mix(in srgb, var(--hue) 45%, transparent); }
+.spot input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font: inherit; color: var(--ink); }
+.spot input::placeholder { color: var(--faint); }
 .spot input::-webkit-search-cancel-button { display: none; }
-.spot:focus-within kbd { display: none; }
+.spot svg { width: 19px; height: 19px; flex: none; }
 /* Hero search results: shown under the hero while the rest of Home steps aside. */
 .hero-results:empty { display: none; }
 .hero-results { margin-top: 40px; }
 #view.hero-searching > :not(.hero):not(.hero-results) { display: none; }
-.spot svg { width: 19px; height: 19px; flex: none; }
-.spot span { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.spot kbd {
-  font: 500 12px var(--font); color: rgba(255,255,255,.6);
-  border: 1px solid rgba(255,255,255,.22); padding: 2px 8px; border-radius: 6px;
-}
 
 /* ---------- Announcement ---------- */
 /* Solid brand color so it reads as "not a card". Info = deep teal with white
@@ -360,8 +343,6 @@ a.bt-row:hover svg { transform: translateX(3px); color: currentColor; }
 }
 @media (max-width: 900px) {
   .cols { grid-template-columns: 1fr; }
-  .hero-text { padding: 56px 40px 44px; }
-  .hero-mark { right: 40px; bottom: 40px; width: 96px; }
 }
 
 /* Phone */
@@ -371,13 +352,10 @@ a.bt-row:hover svg { transform: translateX(3px); color: currentColor; }
   .sec-head p { font-size: .98rem; }
   .block-head { font-size: 1.2rem; margin: var(--space-4) 0 var(--space-2); }
 
-  .hero { border-radius: 26px; }
-  .hero-text { padding: 40px 24px 26px; }
-  .hero-sub { font-size: 1.05rem; }
-  .hero-mark { display: none; }
-  .spot { margin-top: 26px; height: 48px; font-size: .95rem; }
-  .spot kbd { display: none; }
+  .hero { min-height: 0; padding: min(50vw, 200px) 24px 24px; border-width: 5px; border-radius: 22px; }
+  .spot { height: 50px; }
   .spot input { font-size: 16px; }   /* 16px stops iOS zooming on focus */
+  .hero-foot { flex-direction: column; gap: 2px; margin-top: 26px; }
 
   .apps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px 8px; }
   .app { width: auto; }
@@ -697,3 +675,82 @@ body.is-locked .gnav, body.is-locked .main, body.is-locked .skip, body.is-locked
   padding: 4px 10px; border-radius: 999px; background: var(--orange); color: #fff;
   font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
   box-shadow: 0 2px 8px rgb(0 0 0 / .2); }
+
+/* =====================================================================
+   "Connected" look (2026-10-25). Soft lime glow on the page, Home blocks
+   as white framed panels, staff values on a dark panel to bookend the
+   hero. Overrides the Apple-leaning rules above where they meet.
+   ===================================================================== */
+body { background: linear-gradient(180deg, #FAFBF3 0%, var(--lime-wash) 38%, #E9EFB4 100%) fixed; }
+
+.quick-block, .browse-block, .home-values {
+  margin-top: 18px; padding: 30px 32px;
+  background: #fff; border: 7px solid #fff; border-radius: 24px;
+  box-shadow: 0 18px 40px rgba(107,116,9,.14);
+}
+.quick-block .sec-head, .browse-block .sec-head, .home-values .sec-head { margin: 0 0 22px; }
+.sec-head h2 { font-weight: 600; }
+
+/* Announcement (info) as a white panel; urgent stays orange. */
+.ann:not(.ann-urgent) { background: #fff; color: var(--ink); box-shadow: 0 18px 40px rgba(107,116,9,.14); border-radius: 20px; }
+.ann:not(.ann-urgent) .ann-ic { background: var(--lime-wash); color: var(--lime-d); }
+.ann:not(.ann-urgent) .ann-tag { color: var(--lime-d); opacity: 1; }
+.ann:not(.ann-urgent) .ann-cta { background: var(--jungle); color: #fff; }
+.ann:not(.ann-urgent) #ann-x:hover { background: var(--bg); }
+
+/* Quick links: labeled tiles instead of app icons, note always visible. */
+.apps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.app {
+  width: auto; display: grid; grid-template-columns: auto 1fr; column-gap: 14px; align-items: center;
+  text-align: left; padding: 14px 16px; border-radius: 14px; background: #F7F8F1;
+  transition: background .2s var(--ease);
+}
+.app:hover { background: var(--lime-wash); }
+.app-ic { grid-row: span 2; width: 28px; height: 28px; margin: 0; border-radius: 0; background: none; box-shadow: none; color: var(--lime-d); }
+.app-ic svg { width: 24px; height: 24px; }
+.app:hover .app-ic, .app:active .app-ic { transform: none; box-shadow: none; }
+.app b { font-size: 1rem; font-weight: 600; }
+.app-note { display: block; font-size: .88rem; color: var(--slate); margin: 0; }
+
+/* Browse tiles sit inside the white panel, so they take a faint tint. */
+.bt, .bt-lead { background: #F7F8F1; box-shadow: none; }
+a.bt:hover { box-shadow: none; background: var(--lime-wash); }
+.bt h3 { font-size: 1.4rem; font-weight: 600; }
+.bt-later { background: #EDEDF0; }
+
+/* Staff values on a dark panel. */
+.home-values {
+  border-color: #fff; color: #fff;
+  background: radial-gradient(60% 90% at 100% 0%, rgba(205,217,67,.28), transparent 60%), #232625;
+}
+.home-values .sec-head h2 { color: #fff; }
+.home-values .sec-head p { color: #B9BDBA; }
+.hv-item {
+  min-height: 170px; color: #fff;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09);
+}
+.hv-item:hover, .hv-item:focus-visible { transform: translateY(-3px); box-shadow: none; background: rgba(255,255,255,.1); }
+.hv-item:focus-visible { outline: 3px solid var(--lime); }
+.hv-ic { color: var(--lime); opacity: 1; }
+.hv-item small { color: #B9BDBA; opacity: 1; }
+.hv-item b { font-size: 1.45rem; font-weight: 600; }
+.hv-item i { color: #CDD2CE; opacity: 1; }
+
+@media (max-width: 900px) {
+  .apps { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 720px) {
+  .quick-block, .browse-block, .home-values { padding: 22px 18px; border-width: 5px; border-radius: 22px; }
+  .quick-block .sec-head, .browse-block .sec-head, .home-values .sec-head { margin: 0 0 16px; }
+  .apps { gap: 8px; }
+  .app { grid-template-columns: 1fr; padding: 12px; row-gap: 6px; }
+  .app-ic { grid-row: auto; }
+  .app b { font-size: .95rem; }
+  .app-note { display: block; font-size: .82rem; }
+  /* Values as a two-column grid, all five visible, no sideways scroll. */
+  .hv-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0; padding: 0; overflow: visible; }
+  .hv-row li { flex: none; }
+  .hv-row li:last-child { grid-column: 1 / -1; }
+  .hv-item { min-height: 150px; padding: 16px; }
+  .hv-item b { font-size: 1.3rem; }
+}

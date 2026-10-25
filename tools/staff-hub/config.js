@@ -115,6 +115,11 @@ export const CONFIG = {
     welcomeLede: "We're so glad you're here.",
     welcomeBody: [],
     heroSub: "Welcome to the Staff Hub. We're so glad you're here.",
+    // The "Connected" hero (2026-10-25). The accent line takes a
+    // CF color picked at random on each visit: green, blue or orange.
+    heroTitle: "The Connected",
+    heroTitleAccent: "Staff Hub",
+    heroLine: "Connecting every one of us with the forms, tools and people we need. Many people, one church.",
     // Used when the greeting itself does not already say their name.
     heroSubNamed: (name) => `Welcome to the Staff Hub, ${name}. We're so glad you're here.`,
 

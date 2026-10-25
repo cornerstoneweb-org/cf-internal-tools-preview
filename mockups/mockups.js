@@ -306,10 +306,10 @@ function night() {
 /* ---------- 5. Connected (Talenta) ---------- */
 function campusMap(dark) {
   const pins = [
-    { x: 300, y: 150, n: "Walnut Creek" },
-    { x: 620, y: 110, n: "Brentwood" },
-    { x: 470, y: 290, n: "Livermore" },
-    { x: 800, y: 250, n: "Online" },
+    { x: 290, y: 165, n: "Walnut Creek" },
+    { x: 610, y: 105, n: "Brentwood" },
+    { x: 470, y: 295, n: "Livermore" },
+    { x: 800, y: 235, n: "Online" },
   ];
   const inside = (x, y) =>
     ((x - 470) / 380) ** 2 + ((y - 200) / 170) ** 2 < 1 ||
@@ -318,14 +318,21 @@ function campusMap(dark) {
   for (let x = 20; x < 1000; x += 18)
     for (let y = 20; y < 400; y += 18)
       if (inside(x, y)) sq.push(`<rect x="${x}" y="${y}" width="11" height="11" rx="1.5"/>`);
-  const hub = pins[2];
-  const arcs = pins.filter((p) => p !== hub).map((p) => {
-    const mx = (p.x + hub.x) / 2, my = Math.min(p.y, hub.y) - 90;
-    return `<path d="M${hub.x} ${hub.y} Q${mx} ${my} ${p.x} ${p.y}"/>`;
-  });
+  const cx = Math.round(pins.reduce((t, p) => t + p.x, 0) / pins.length);
+  const cy = Math.round(pins.reduce((t, p) => t + p.y, 0) / pins.length);
+  // Every campus links to every other one, so no campus reads as the hub.
+  const arcs = [];
+  pins.forEach((a, i) => pins.slice(i + 1).forEach((b) => {
+    const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy);
+    const mx = (a.x + b.x) / 2 - (dy / len) * len * 0.22;
+    const my = (a.y + b.y) / 2 + (dx / len) * len * 0.22 * (dy > 0 ? 1 : -1);
+    arcs.push(`<path d="M${a.x} ${a.y} Q${mx.toFixed(0)} ${Math.min(my, (a.y + b.y) / 2 - 30).toFixed(0)} ${b.x} ${b.y}"/>`);
+  }));
   return `<svg class="c-map ${dark ? "dark" : ""}" viewBox="0 0 1000 420" aria-hidden="true">
     <g class="c-sq">${sq.join("")}</g>
     <g class="c-arcs">${arcs.join("")}</g>
+    <g class="c-spokes">${pins.map((p) => `<path d="M${cx} ${cy} L${p.x} ${p.y}"/>`).join("")}</g>
+    <g class="c-center"><circle cx="${cx}" cy="${cy}" r="40"/><image href="/shared/assets/brand/cf-icon-white.png" x="${cx - 24}" y="${cy - 24}" width="48" height="48"/></g>
     ${pins.map((p) => `<g class="c-pin"><circle cx="${p.x}" cy="${p.y}" r="14"/><path d="M${p.x - 6} ${p.y}h12M${p.x} ${p.y - 6}v12"/><text x="${p.x}" y="${p.y + 36}">${p.n}</text></g>`).join("")}
   </svg>`;
 }
@@ -337,10 +344,10 @@ function connected() {
   </header>
   <main id="main" class="c-main">
     <section class="c-slide c-dark">
-      ${campusMap(true)}
+      <svg class="c-gather" viewBox="0 0 1000 420" preserveAspectRatio="xMaxYMid slice" aria-hidden="true"></svg>
       <div class="c-copy">
         <h1>The Connected<br><span>Staff Hub</span></h1>
-        <p><b>Connecting</b> staff at Livermore, Brentwood, Walnut Creek and Online with the forms, tools and people they need.</p>
+        <p><b>Connecting</b> every one of us with the forms, tools and people we need. Many people, one church.</p>
         ${searchField("c-search")}
       </div>
       <p class="c-foot"><span>Hi, ${C.name}</span><span>${C.dateLong}</span></p>
@@ -525,7 +532,141 @@ function warm() {
   </div>`;
 }
 
-const VIEWS = { lobby, soft, tiles, night, connected, editorial, library, warm };
+
+/* ---------- 9. Resource (Ionic Resource Center) ---------- */
+function resource() {
+  const feature = [
+    { cls: "r-orange", k: "building", tag: "Requests", title: "Ask another team for something", btn: "Start a request" },
+    { cls: "r-jungle", k: "people", tag: "Human Resources", title: "Pay, time off, policies and paperwork", btn: "Open HR" },
+    { cls: "r-teal", k: "grid", tag: "Software", title: "The programs we use to get work done", btn: "See software" },
+  ];
+  const tabs = [["star", "Featured"], ["doc", "Requests"], ["people", "HR"], ["grid", "Software"], ["layers", "Brand"]];
+  const tints = ["r-c1", "r-c2", "r-c3", "r-c4"];
+  return `
+  <div class="r-page">
+    <header class="r-top">
+      ${logo(false)}
+      <nav class="r-nav" aria-label="Main">${navLinks()}</nav>
+      <button class="r-iconbtn" type="button" aria-label="Search">${ic("search")}</button>
+      <a class="r-signin" href="#">New request</a>
+    </header>
+    <main id="main">
+      <section class="r-head">
+        <h1>Staff Hub</h1>
+        <p>Hi ${C.name}. Everything for Cornerstone staff, from request forms and software to HR policies and the people who can help.</p>
+      </section>
+      <section class="r-feature" aria-label="Featured">
+        ${feature.map((f) => `
+          <a class="r-fcard ${f.cls}" href="#">
+            ${ic(f.k, "ic r-fart")}
+            <span class="r-ftag">${f.tag}</span>
+            <b>${f.title}</b>
+            <span class="r-fbtn">${f.btn}</span>
+          </a>`).join("")}
+      </section>
+      <nav class="r-tabs" aria-label="Browse by type">
+        ${tabs.map(([k, l], i) => `<a href="#" ${i === 0 ? 'aria-current="page"' : ""}>${ic(k === "star" ? "sunrise" : k)}${l}</a>`).join("")}
+      </nav>
+      <div class="r-sheet">
+        <p class="r-ann">${ic("horn")}<span><b>${C.announce.label}:</b> ${C.announce.text}</span></p>
+        <section>
+          <div class="r-rowhead"><h2>Start a request</h2><a href="#">See all ${ic("arrow")}</a></div>
+          <div class="r-cards">
+            ${C.requests.map((r, i) => `
+              <a class="r-card ${tints[i]}" href="#">
+                ${ic(r.k, "ic r-cart")}
+                <span class="r-ctag">${r.team}</span>
+                <b>${r.title}</b>
+                <span class="r-read">Start now</span>
+              </a>`).join("")}
+          </div>
+        </section>
+        <section>
+          <div class="r-rowhead"><h2>Every day</h2><a href="#">See all ${ic("arrow")}</a></div>
+          <ul class="r-quick">${C.quick.map((q) => `<li><a href="#"><span>${ic(q.k)}</span><b>${q.label}</b><small>${q.note}</small></a></li>`).join("")}</ul>
+        </section>
+        <section>
+          <div class="r-rowhead"><h2>How we work around here</h2></div>
+          <ul class="r-values">${C.values.map((v) => `<li><b>${v.title}</b><span>${v.short}</span></li>`).join("")}</ul>
+        </section>
+        <footer>${contact}</footer>
+      </div>
+    </main>
+  </div>`;
+}
+
+
+// Connected hero: a dim pixel field, plus lime squares that start scattered
+// and gather into the CF mark. Every square is a person; none is labeled.
+function buildGather(svg) {
+  const NS = "http://www.w3.org/2000/svg";
+  const RES = 240, N = 40;                      // the mark is sampled onto an N x N grid
+  const phone = matchMedia("(max-width: 900px)").matches;
+  // Desktop: wide field, mark on the right, field fades out toward the title on the left.
+  // Phone: tall field, mark centered at the top, field fades out toward the title below.
+  const L = phone
+    ? (() => {
+        const r = svg.getBoundingClientRect(), W = 400, H = Math.round((W * r.height) / r.width) || 700;
+        return { W, H, STEP: 13, SIZE: 9, MSTEP: 3.8, MSIZE: 3, cx: W / 2, cy: 105,
+                 fade: (x, y) => Math.max(0, Math.min(1, (250 - y) / 150)) };
+      })()
+    : { W: 1000, H: 420, STEP: 15, SIZE: 10, MSTEP: 7, MSIZE: 5.5, cx: 790, cy: 200,
+        fade: (x) => Math.max(0, Math.min(1, (x - 330) / 330)) };
+  const { W, H, STEP, SIZE, MSTEP, MSIZE, fade } = L;
+  // A different CF color each visit: green, blue or orange.
+  const hues = ["#CDD943", "#32B9DB", "#FE8730"];
+  svg.closest(".c-slide").style.setProperty("--hue", hues[Math.floor(Math.random() * hues.length)]);
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("preserveAspectRatio", phone ? "xMidYMin slice" : "xMaxYMid slice");
+  const ox = L.cx - (N * MSTEP) / 2, oy = L.cy - (N * MSTEP) / 2;
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const img = new Image();
+  img.onload = () => {
+    const c = document.createElement("canvas");
+    c.width = c.height = RES;
+    const g = c.getContext("2d");
+    g.drawImage(img, 0, 0, RES, RES);
+    const px = g.getImageData(0, 0, RES, RES).data;
+    const lit = new Set();
+    const b = RES / N;
+    for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+      let a = 0;
+      for (let y = Math.floor(j * b); y < (j + 1) * b; y++)
+        for (let x = Math.floor(i * b); x < (i + 1) * b; x++) a = Math.max(a, px[(y * RES + x) * 4 + 3]);
+      if (a > 120) lit.add(`${i},${j}`);
+    }
+    const frag = document.createDocumentFragment();
+    for (let x = 0; x < W; x += STEP) for (let y = 0; y < H; y += STEP) {
+      const f = fade(x, y);
+      if (f <= 0) continue;
+      const r = document.createElementNS(NS, "rect");
+      Object.entries({ x, y, width: SIZE, height: SIZE, rx: 1.5, class: "g-bg", opacity: f.toFixed(2) }).forEach(([k, v]) => r.setAttribute(k, v));
+      frag.appendChild(r);
+    }
+    const people = [];
+    lit.forEach((key) => {
+      const [i, j] = key.split(",").map(Number);
+      const tx = ox + i * MSTEP, ty = oy + j * MSTEP;
+      const r = document.createElementNS(NS, "rect");
+      Object.entries({ x: tx, y: ty, width: MSIZE, height: MSIZE, rx: 1, class: "g-p" }).forEach(([k, v]) => r.setAttribute(k, v));
+      let sx, sy;
+      sx = Math.random() * (W - 10); sy = Math.random() * (H - 10);
+      r.style.transform = still ? "none" : `translate(${(sx - tx).toFixed(0)}px, ${(sy - ty).toFixed(0)}px)`;
+      r.style.transitionDelay = `${(Math.random() * 900).toFixed(0)}ms`;
+      people.push(r);
+      frag.appendChild(r);
+    });
+    svg.appendChild(frag);
+    if (!still) {
+      svg.getBoundingClientRect(); // commit the scattered start before moving
+      setTimeout(() => people.forEach((r) => { r.style.transform = "translate(0, 0)"; r.classList.add("in"); }), 80);
+    }
+    else people.forEach((r) => r.classList.add("in"));
+  };
+  img.src = "/shared/assets/brand/library/icon/icon-outline-white.png";
+}
+
+const VIEWS = { lobby, soft, tiles, night, connected, editorial, library, warm, resource };
 const app = document.getElementById("app");
 const btns = [...document.querySelectorAll(".switcher button")];
 
@@ -533,6 +674,8 @@ function show(v, push = true) {
   if (!VIEWS[v]) v = "lobby";
   document.body.dataset.v = v;
   app.innerHTML = VIEWS[v]();
+  const g = app.querySelector(".c-gather");
+  if (g) buildGather(g);
   btns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === v)));
   btns.find((b) => b.dataset.v === v)?.scrollIntoView({ inline: "center", block: "nearest" });
   if (push) history.replaceState(null, "", "#" + v);
@@ -545,6 +688,9 @@ document.addEventListener("keydown", (e) => {
   const i = keys.indexOf(document.body.dataset.v);
   if (e.key === "ArrowRight") show(keys[(i + 1) % keys.length]);
   if (e.key === "ArrowLeft") show(keys[(i + keys.length - 1) % keys.length]);
-  if (/^[1-8]$/.test(e.key)) show(keys[+e.key - 1]);
+  if (/^[1-9]$/.test(e.key)) show(keys[+e.key - 1]);
 });
 show(location.hash.slice(1), false);
+matchMedia("(max-width: 900px)").addEventListener("change", () => {
+  if (document.body.dataset.v === "connected") show("connected", false);
+});

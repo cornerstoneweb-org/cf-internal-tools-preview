@@ -23,31 +23,31 @@ colors:
   faint: "#6E6E73"
 typography:
   display:
-    fontFamily: "Inter, -apple-system, BlinkMacSystemFont, system-ui, Segoe UI, Roboto, sans-serif"
+    fontFamily: "Manrope, -apple-system, BlinkMacSystemFont, system-ui, Segoe UI, Roboto, sans-serif"
     fontSize: "clamp(2.5rem, 6.4vw, 4.25rem)"
     fontWeight: 700
     lineHeight: 1.02
     letterSpacing: "-0.04em"
   headline:
-    fontFamily: "Inter, -apple-system, BlinkMacSystemFont, system-ui, Segoe UI, Roboto, sans-serif"
+    fontFamily: "Manrope, -apple-system, BlinkMacSystemFont, system-ui, Segoe UI, Roboto, sans-serif"
     fontSize: "clamp(2.1rem, 5vw, 3rem)"
     fontWeight: 700
     lineHeight: 1.04
     letterSpacing: "-0.035em"
   title:
-    fontFamily: "Inter, -apple-system, BlinkMacSystemFont, system-ui, Segoe UI, Roboto, sans-serif"
+    fontFamily: "Manrope, -apple-system, BlinkMacSystemFont, system-ui, Segoe UI, Roboto, sans-serif"
     fontSize: "1.2rem"
     fontWeight: 700
     lineHeight: 1.2
     letterSpacing: "-0.02em"
   body:
-    fontFamily: "Inter, -apple-system, BlinkMacSystemFont, system-ui, Segoe UI, Roboto, sans-serif"
+    fontFamily: "Manrope, -apple-system, BlinkMacSystemFont, system-ui, Segoe UI, Roboto, sans-serif"
     fontSize: "16px"
     fontWeight: 400
     lineHeight: 1.5
     fontFeature: "\"cv11\", \"ss01\""
   label:
-    fontFamily: "Inter, -apple-system, BlinkMacSystemFont, system-ui, Segoe UI, Roboto, sans-serif"
+    fontFamily: "Manrope, -apple-system, BlinkMacSystemFont, system-ui, Segoe UI, Roboto, sans-serif"
     fontSize: "11px"
     fontWeight: 600
     lineHeight: 1.3
@@ -118,7 +118,9 @@ components:
 
 ## Overview
 
-**Creative North Star: "The Welcoming Lobby"**
+**Creative North Star: "The Welcoming Lobby"**, worn in the **"Connected"** look (October 25, 2026).
+
+**Connected (current).** The page sits on a soft lime glow. Home opens on a dark panel framed in white: "The Connected Staff Hub", a pixel field that fades out behind the title, and lime, blue or orange squares (picked at random each visit) that gather into the CF mark. Every square stands for a person and none is labeled, so no campus or team is singled out. Home blocks are white framed panels; the staff values sit on a second dark panel that bookends the hero. Type is Manrope. Notes below that describe the September look (Inter, app-icon quick links, colored value cards, a teal announcement) are superseded where they conflict; the mockup that set this look is `mockups/` (Connected).
 
 The hub should feel like walking into a Cornerstone lobby on a weekday: bright, calm, clearly signed, and someone has already thought about where you need to go. Most staff are pastors, not technologists, so the look earns trust by being obvious. Big plain headings, one clear action color, and generous space mean nobody has to hunt.
 
@@ -129,7 +131,7 @@ Density is relaxed on desktop and the same content stacks to a single column on 
 **Key Characteristics:**
 - Calm grey ground, white cards, soft shadows, almost no borders.
 - Cornerstone Teal for actions and links; each section owns one CF accent as a small dot.
-- Inter with tight, confident headline tracking.
+- Manrope with tight, confident headline tracking.
 - Pill buttons and generously rounded cards (20px).
 - Frosted glass bars: top nav on desktop, tab bar on phone.
 
@@ -169,8 +171,8 @@ A quiet neutral room with Cornerstone's teal as the voice and orange and lime as
 
 ## Typography
 
-**Display Font:** Inter (with -apple-system, system-ui fallback)
-**Body Font:** Inter
+**Display Font:** Manrope (with -apple-system, system-ui fallback)
+**Body Font:** Manrope
 
 **Character:** One family doing everything. Headlines are bold with tight negative tracking so they read as confident and modern; body text stays at a comfortable 16px with relaxed line height so it reads easily for anyone.
 
@@ -256,6 +258,6 @@ Jungle Night ground lit by a cyan glow at the top right and a lime glow at the b
 ### Don't:
 - **Don't** put white text on orange, lime, or cyan.
 - **Don't** use lime for text.
-- **Don't** add a second dark surface beyond the Home hero and toasts.
+- **Don't** add a dark surface beyond the Home hero, the staff values panel and toasts.
 - **Don't** show a lifted, colorful card for something that isn't live yet; use the flat grey Coming soon card.
 - **Don't** introduce new fonts, colors, or a sidebar; the shell is shared by every tool.

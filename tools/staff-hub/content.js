@@ -90,11 +90,8 @@ export const CONTENT = {
     handbookPdf: HANDBOOK_PDF,
   },
 
-  // Photos for the welcome banner on Home. One is picked at random on each
-  // visit. Files live in shared/assets/photos/ (web-sized, about 1800px wide).
-  //   place:  optional label shown in the corner, e.g. "Brentwood"
-  //   focus:  optional CSS object-position, to keep the subject in frame
-  // Empty = plain CF teal banner. Add photos here when good ones come in.
+  // Photos for the old welcome banner. Not used since the "Connected" hero
+  // (2026-10-25), which draws a pixel field instead. Kept for a later use.
   heroPhotos: [],
 
   contact: {

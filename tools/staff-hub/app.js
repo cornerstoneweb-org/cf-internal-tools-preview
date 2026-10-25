@@ -6,9 +6,9 @@ import { getSession, isStaff, displayName, userMeta, signIn, signOut, selectAll 
 import { watchForNewVersion } from "../../shared/js/version-check.js";
 import { toast } from "../../shared/js/ui.js";
 import { mountFacilities } from "../facilities/facilities.js";
+import { drawHeroPixels } from "./hero-pixels.js";
 
 const LIB = "../../shared/assets/brand/library/";
-const PHOTOS = "../../shared/assets/photos/";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
@@ -255,28 +255,22 @@ function greetingText() {
 }
 
 function homeView() {
-  const photos = CONTENT.heroPhotos ?? [];
-  const photo = photos.length ? photos[Math.floor(Math.random() * photos.length)] : null;
   const L = CONFIG.labels;
-  const sub = firstName && !greetingText().includes("{name}") && L.heroSubNamed
-    ? L.heroSubNamed(firstName) : (L.heroSub ?? L.welcomeLede);
-  // The dark hero: date, a big greeting, and a Spotlight-style search button
-  // that opens the real search in the nav.
+  // The dark "Connected" hero: a title, one line, the search, and the
+  // greeting and date along the bottom. hero-pixels.js draws the pixel field
+  // that gathers into the CF mark.
   const head = CONFIG.features.greeting
-    ? `<section class="hero${photo ? " has-photo" : ""}">
-         ${photo ? `<img class="hero-img" src="${PHOTOS}${esc(photo.src)}" alt="${esc(photo.alt ?? "")}"
-            style="object-position:${esc(photo.focus ?? "center")}" fetchpriority="high">` : ""}
+    ? `<section class="hero">
+         <svg class="hero-pixels" aria-hidden="true"></svg>
          <div class="hero-text">
-           <p class="hero-date">${esc(DATE_FMT.format(new Date()))}</p>
-           <h1>${esc(withName(greetingText()))}</h1>
-           <p class="hero-sub">${esc(sub)}</p>
+           <h1>${esc(L.heroTitle)}<br><span>${esc(L.heroTitleAccent)}</span></h1>
+           <p class="hero-sub">${esc(L.heroLine)}</p>
            ${CONFIG.features.search ? `<label class="spot">
              ${ICONS.search}<input type="search" id="hero-q" autocomplete="off" spellcheck="false"
-               placeholder="${esc(L.heroSearch ?? L.searchPlaceholder)}" aria-label="Search the hub"><kbd>/</kbd>
+               placeholder="${esc(L.heroSearch ?? L.searchPlaceholder)}" aria-label="Search the hub">
            </label>` : ""}
          </div>
-         ${photo?.place ? `<span class="hero-place">${esc(photo.place)}</span>`
-           : `<img class="hero-mark" src="../../shared/assets/brand/cf-icon-white.png" alt="" aria-hidden="true">`}
+         <p class="hero-foot"><span>${esc(withName(greetingText()))}</span><span>${esc(DATE_FMT.format(new Date()))}</span></p>
        </section>
        <div class="hero-results" id="hero-results" aria-live="polite"></div>`
     : `<div class="welcome">
@@ -1051,6 +1045,7 @@ function route() {
       : section.layout === "holidays" ? holidaysView(section)
       : sectionView(section))
     : homeView();
+  if (!section) drawHeroPixels(document.querySelector(".hero-pixels"));
   $("search").placeholder = section
     ? CONFIG.labels.sectionSearchPlaceholder(section.title)
     : CONFIG.labels.searchPlaceholder;
