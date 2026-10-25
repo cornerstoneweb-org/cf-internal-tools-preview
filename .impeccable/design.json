@@ -1,0 +1,455 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-25T14:07:13.343Z",
+  "title": "Design System: Cornerstone Staff Hub",
+  "extensions": {
+    "colorMeta": {
+      "cornerstone-teal": {
+        "role": "primary",
+        "displayName": "Cornerstone Teal",
+        "tonalRamp": [
+          "#000F1D",
+          "#002B3F",
+          "#004A64",
+          "#006B88",
+          "#008FAE",
+          "#4DB4D1",
+          "#8CD8EF",
+          "#C1F9FF"
+        ]
+      },
+      "deep-teal": {
+        "role": "primary",
+        "displayName": "Deep Teal",
+        "tonalRamp": [
+          "#000F1A",
+          "#002B3B",
+          "#00495F",
+          "#006983",
+          "#2F8DA8",
+          "#60B1CB",
+          "#97D6EA",
+          "#C8F8FF"
+        ]
+      },
+      "teal-wash": {
+        "role": "primary",
+        "displayName": "Teal Wash",
+        "tonalRamp": [
+          "#070C0D",
+          "#1E2528",
+          "#384244",
+          "#556063",
+          "#778386",
+          "#9CA7AA",
+          "#C3CCCF",
+          "#E9F0F2"
+        ]
+      },
+      "harvest-orange": {
+        "role": "secondary",
+        "displayName": "Harvest Orange",
+        "tonalRamp": [
+          "#260000",
+          "#4E0000",
+          "#7A1300",
+          "#A33300",
+          "#CC5A00",
+          "#F18337",
+          "#FFB27B",
+          "#FFDDB3"
+        ]
+      },
+      "harvest-orange-deep": {
+        "role": "secondary",
+        "displayName": "Harvest Orange Deep",
+        "tonalRamp": [
+          "#220000",
+          "#470B00",
+          "#702300",
+          "#984000",
+          "#C0641C",
+          "#E48B51",
+          "#FFB88A",
+          "#FFE1BE"
+        ]
+      },
+      "harvest-orange-wash": {
+        "role": "secondary",
+        "displayName": "Harvest Orange Wash",
+        "tonalRamp": [
+          "#0F0A06",
+          "#2A221B",
+          "#483E34",
+          "#675B50",
+          "#8A7E72",
+          "#AEA297",
+          "#D3C9BF",
+          "#F5EDE6"
+        ]
+      },
+      "spring-lime": {
+        "role": "tertiary",
+        "displayName": "Spring Lime",
+        "tonalRamp": [
+          "#0D0D00",
+          "#262800",
+          "#414500",
+          "#5F6500",
+          "#818900",
+          "#A4AE1A",
+          "#C9D471",
+          "#EDF6AD"
+        ]
+      },
+      "spring-lime-deep": {
+        "role": "tertiary",
+        "displayName": "Spring Lime Deep",
+        "tonalRamp": [
+          "#0B0D00",
+          "#242800",
+          "#3F4500",
+          "#5C6400",
+          "#7E8829",
+          "#A2AD59",
+          "#C8D290",
+          "#ECF4C2"
+        ]
+      },
+      "spring-lime-wash": {
+        "role": "tertiary",
+        "displayName": "Spring Lime Wash",
+        "tonalRamp": [
+          "#0B0C04",
+          "#242518",
+          "#40422F",
+          "#5E604A",
+          "#80836C",
+          "#A4A791",
+          "#CACCBB",
+          "#EEF0E2"
+        ]
+      },
+      "sky-cyan": {
+        "role": "tertiary",
+        "displayName": "Sky Cyan",
+        "tonalRamp": [
+          "#00101E",
+          "#002C41",
+          "#004B67",
+          "#006C8B",
+          "#0090B1",
+          "#3FB5D4",
+          "#85D9F2",
+          "#BCFAFF"
+        ]
+      },
+      "cerulean": {
+        "role": "tertiary",
+        "displayName": "Cerulean",
+        "tonalRamp": [
+          "#000F21",
+          "#002B45",
+          "#004A6D",
+          "#006B93",
+          "#008FB9",
+          "#36B4DC",
+          "#81D8F9",
+          "#B9FAFF"
+        ]
+      },
+      "jungle-night": {
+        "role": "neutral",
+        "displayName": "Jungle Night",
+        "tonalRamp": [
+          "#070D0A",
+          "#1E2622",
+          "#38433E",
+          "#54615B",
+          "#77847D",
+          "#9BA8A2",
+          "#C3CDC8",
+          "#E8F1ED"
+        ]
+      },
+      "lobby-grey": {
+        "role": "neutral",
+        "displayName": "Lobby Grey",
+        "tonalRamp": [
+          "#0B0B0C",
+          "#242425",
+          "#3F3F41",
+          "#5D5D5F",
+          "#808082",
+          "#A4A4A6",
+          "#CACACC",
+          "#EEEEEF"
+        ]
+      },
+      "card-white": {
+        "role": "neutral",
+        "displayName": "Card White",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#242424",
+          "#404040",
+          "#5D5D5D",
+          "#808080",
+          "#A4A4A4",
+          "#CACACA",
+          "#EEEEEE"
+        ]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "tonalRamp": [
+          "#0B0B0D",
+          "#242426",
+          "#3F3F43",
+          "#5D5D61",
+          "#808084",
+          "#A4A4A8",
+          "#CACACE",
+          "#EEEEF1"
+        ]
+      },
+      "hairline-strong": {
+        "role": "neutral",
+        "displayName": "Hairline Strong",
+        "tonalRamp": [
+          "#0B0B0D",
+          "#242426",
+          "#3F3F43",
+          "#5D5D61",
+          "#808084",
+          "#A4A4A8",
+          "#CACACE",
+          "#EEEEF1"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "tonalRamp": [
+          "#0B0B0C",
+          "#242425",
+          "#3F3F41",
+          "#5D5D60",
+          "#808082",
+          "#A4A4A7",
+          "#CACACC",
+          "#EEEEF0"
+        ]
+      },
+      "slate": {
+        "role": "neutral",
+        "displayName": "Slate",
+        "tonalRamp": [
+          "#090B0F",
+          "#20242A",
+          "#3B4048",
+          "#585E67",
+          "#7A818A",
+          "#9FA5AE",
+          "#C6CBD3",
+          "#EBEFF5"
+        ]
+      },
+      "faint": {
+        "role": "neutral",
+        "displayName": "Faint",
+        "tonalRamp": [
+          "#0B0B0D",
+          "#242427",
+          "#3F3F43",
+          "#5D5D62",
+          "#808085",
+          "#A4A4A9",
+          "#CACACE",
+          "#EEEEF1"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Home hero headline only."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page titles and the welcome heading."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Card and tile titles."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "All reading text."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Pills, nav links, tags."
+      }
+    },
+    "shadows": [
+      {
+        "name": "shadow",
+        "value": "0 1px 2px rgba(0,0,0,.04), 0 10px 30px rgba(0,0,0,.05)",
+        "purpose": "Resting cards and tiles."
+      },
+      {
+        "name": "shadow-up",
+        "value": "0 2px 4px rgba(0,0,0,.05), 0 18px 44px rgba(0,0,0,.10)",
+        "purpose": "Hovered cards, menus, toasts."
+      },
+      {
+        "name": "focus-glow",
+        "value": "0 0 0 4px rgba(6,147,178,.14)",
+        "purpose": "Search field focus."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(.25,.1,.25,1)",
+        "purpose": "All state transitions, 0.2 to 0.3s; off under reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "phone",
+        "value": "720px"
+      },
+      {
+        "name": "narrow",
+        "value": "900px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Every primary action.",
+      "html": "<button class=\"ds-btn\">Open request</button>",
+      "css": ".ds-btn{background:#04758F;color:#fff;border:0;border-radius:999px;padding:11px 22px;font:600 14.5px Inter,system-ui,sans-serif;letter-spacing:-.005em;cursor:pointer;transition:background .2s cubic-bezier(.25,.1,.25,1),transform .2s cubic-bezier(.25,.1,.25,1)}.ds-btn:hover{background:#035F74}.ds-btn:active{transform:scale(.98)}.ds-btn:focus-visible{outline:2px solid #0693B2;outline-offset:2px}"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary actions.",
+      "html": "<button class=\"ds-btn-ghost\">Cancel</button>",
+      "css": ".ds-btn-ghost{background:rgba(0,0,0,.05);color:#1D1D1F;border:0;border-radius:999px;padding:11px 22px;font:600 14.5px Inter,system-ui,sans-serif;cursor:pointer;transition:background .2s}.ds-btn-ghost:hover{background:rgba(0,0,0,.09)}.ds-btn-ghost:focus-visible{outline:2px solid #0693B2;outline-offset:2px}"
+    },
+    {
+      "name": "Search Field",
+      "kind": "input",
+      "refersTo": "search-field",
+      "description": "The hub-wide search.",
+      "html": "<label class=\"ds-search\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"m20 20-3.5-3.5\"/></svg><input placeholder=\"Search links, forms, people\"></label>",
+      "css": ".ds-search{display:flex;align-items:center;gap:12px;max-width:520px;background:#fff;border:1px solid #D2D2D7;border-radius:14px;padding:12px 16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}.ds-search svg{width:18px;height:18px;color:#6E6E73}.ds-search input{flex:1;border:0;outline:0;background:none;font:17px Inter,system-ui,sans-serif;color:#1D1D1F}.ds-search:focus-within{border-color:#0693B2;box-shadow:0 0 0 4px rgba(6,147,178,.14)}"
+    },
+    {
+      "name": "Section Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Resource card on a section page, with the section dot.",
+      "html": "<a class=\"ds-card\" href=\"#\"><span class=\"ds-dot\"></span><h3>Office 365</h3><p>Email, calendar and files with your work account.</p></a>",
+      "css": ".ds-card{display:flex;flex-direction:column;max-width:300px;background:#fff;border-radius:20px;padding:24px 24px 22px;box-shadow:0 1px 2px rgba(0,0,0,.04),0 10px 30px rgba(0,0,0,.05);text-decoration:none;color:#1D1D1F;font-family:Inter,system-ui,sans-serif;transition:transform .3s cubic-bezier(.25,.1,.25,1),box-shadow .3s}.ds-card:hover{transform:translateY(-3px);box-shadow:0 2px 4px rgba(0,0,0,.05),0 18px 44px rgba(0,0,0,.10)}.ds-card:focus-visible{outline:2px solid #0693B2;outline-offset:2px}.ds-dot{width:10px;height:10px;border-radius:50%;background:#0693B2;margin-bottom:14px}.ds-card h3{margin:0;font-size:1.2rem;font-weight:700;letter-spacing:-.02em}.ds-card p{margin:8px 0 0;color:#515760;font-size:.94rem;line-height:1.5}"
+    },
+    {
+      "name": "Status Pills",
+      "kind": "chip",
+      "refersTo": "pill-ok",
+      "description": "Small status tags.",
+      "html": "<span class=\"ds-pill ds-ok\">Open</span> <span class=\"ds-pill ds-warn\">Waiting</span>",
+      "css": ".ds-pill{font:600 11px Inter,system-ui,sans-serif;padding:3px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:5px}.ds-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}.ds-ok{background:#F5F8DF;color:#6B7409}.ds-warn{background:#FFF1E4;color:#B65B0D}"
+    },
+    {
+      "name": "Top Navigation",
+      "kind": "nav",
+      "refersTo": "nav-link-active",
+      "description": "Frosted desktop bar with pill links.",
+      "html": "<nav class=\"ds-nav\"><a class=\"on\" href=\"#\">Home</a><a href=\"#\">Requests</a><a href=\"#\">HR</a><a href=\"#\">Roster</a></nav>",
+      "css": ".ds-nav{display:flex;gap:2px;padding:8px 16px;background:rgba(251,251,253,.78);backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid rgba(0,0,0,.07);font-family:Inter,system-ui,sans-serif}.ds-nav a{padding:6px 12px;border-radius:999px;font-size:13.5px;font-weight:500;color:#424245;text-decoration:none;transition:color .2s,background .2s}.ds-nav a:hover{color:#1D1D1F}.ds-nav a:focus-visible{outline:2px solid #0693B2;outline-offset:2px}.ds-nav a.on{color:#1D1D1F;font-weight:600;background:rgba(6,147,178,.12)}"
+    },
+    {
+      "name": "Announcement Banner",
+      "kind": "custom",
+      "refersTo": "announcement-info",
+      "description": "Info strip at the top of Home.",
+      "html": "<div class=\"ds-ann\"><div><small>Notice</small><p>Open enrollment closes Friday.</p></div><a href=\"#\">Read it</a></div>",
+      "css": ".ds-ann{display:flex;align-items:center;gap:14px;background:#04758F;color:#fff;border-radius:16px;padding:14px 12px 14px 16px;font-family:Inter,system-ui,sans-serif;box-shadow:0 2px 4px rgba(4,117,143,.18),0 12px 28px rgba(4,117,143,.22)}.ds-ann div{flex:1}.ds-ann small{display:block;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.85}.ds-ann p{margin:0;font-weight:600}.ds-ann a{background:#fff;color:#04758F;font-weight:600;font-size:.9rem;padding:8px 14px;border-radius:999px;text-decoration:none}.ds-ann a:focus-visible{outline:2px solid #fff;outline-offset:2px}"
+    },
+    {
+      "name": "Home Hero",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "Jungle Night hero with teal and lime glow.",
+      "html": "<section class=\"ds-hero\"><h1>Good morning, team</h1><p>Everything you need, in one place.</p></section>",
+      "css": ".ds-hero{border-radius:28px;padding:56px 40px 44px;color:#fff;font-family:Inter,system-ui,sans-serif;background:radial-gradient(900px 420px at 88% -10%,rgba(50,185,219,.55),transparent 60%),radial-gradient(700px 380px at 105% 110%,rgba(205,217,67,.35),transparent 60%),linear-gradient(160deg,#0B2A33 0%,#16211C 70%)}.ds-hero h1{margin:0;font-size:2.8rem;font-weight:700;letter-spacing:-.04em;line-height:1.02}.ds-hero p{margin:14px 0 0;color:rgba(255,255,255,.72);font-size:1.2rem}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Welcoming Lobby",
+    "overview": "The hub should feel like walking into a Cornerstone lobby on a weekday: bright, calm, clearly signed, and someone has already thought about where you need to go. Most staff are pastors, not technologists, so the look earns trust by being obvious. Big plain headings, one clear action color, and generous space mean nobody has to hunt.\n\nThe system is an Apple-leaning restyle (September 2026) on Cornerstone's own palette. A soft grey ground holds white cards that lift slightly on a soft shadow instead of being boxed in by lines. Brand color is used to tell you where you are and what you can press, not to decorate. The one moment of drama is the dark Jungle Night hero on Home, lit by a teal and lime glow.\n\nDensity is relaxed on desktop and the same content stacks to a single column on phones, where the section links move to an iPhone-style tab bar at the bottom.",
+    "keyCharacteristics": [
+      "Calm grey ground, white cards, soft shadows, almost no borders.",
+      "Cornerstone Teal for actions and links; each section owns one CF accent as a small dot.",
+      "Inter with tight, confident headline tracking.",
+      "Pill buttons and generously rounded cards (20px).",
+      "Frosted glass bars: top nav on desktop, tab bar on phone."
+    ],
+    "rules": [
+      {
+        "name": "The Color Means Place Rule",
+        "body": "Section accents say \"which section am I in\". The same accent appears on the nav highlight, the home card, and the section page dot, and nowhere else.",
+        "section": "colors"
+      },
+      {
+        "name": "The Teal Carries White Rule",
+        "body": "White text only goes on Deep Teal or Jungle Night. Orange and lime always carry dark ink.",
+        "section": "colors"
+      },
+      {
+        "name": "The Lime Never Speaks Rule",
+        "body": "Spring Lime is never used as text. Mixed text from a section accent stays at or below the tested mix (52% for \"Coming soon\" pills) so every CF accent clears 4.5:1.",
+        "section": "colors"
+      },
+      {
+        "name": "The Plain Words Rule",
+        "body": "Headings say what is on the page in everyday words. Type size does the emphasis; no all-caps headings, no decorative fonts.",
+        "section": "typography"
+      },
+      {
+        "name": "The Thumb Reach Rule",
+        "body": "On a phone, primary navigation lives at the bottom of the screen, within thumb reach.",
+        "section": "layout"
+      },
+      {
+        "name": "The Lift Means Pressable Rule",
+        "body": "A card that lifts on hover (3px up, Lifted shadow) is a link. A \"Coming soon\" card goes flat grey with no shadow and no lift, so the eye reads \"not yet\" before reading a word.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do use Deep Teal for every button and link, so \"teal means press\" holds everywhere.",
+      "Do give each section one CF accent and repeat it on its nav highlight, card, and page dot.",
+      "Do separate surfaces with the Resting shadow on Lobby Grey rather than adding borders.",
+      "Do keep text at Faint (#6E6E73) or darker; nothing lighter for words.",
+      "Do keep tap targets phone-sized and inputs at 16px or larger on phones.",
+      "Do respect reduced motion: transitions are short (0.2 to 0.3s) and switch off entirely when requested."
+    ],
+    "donts": [
+      "Don't put white text on orange, lime, or cyan.",
+      "Don't use lime for text.",
+      "Don't add a second dark surface beyond the Home hero and toasts.",
+      "Don't show a lifted, colorful card for something that isn't live yet; use the flat grey Coming soon card.",
+      "Don't introduce new fonts, colors, or a sidebar; the shell is shared by every tool."
+    ]
+  }
+}
