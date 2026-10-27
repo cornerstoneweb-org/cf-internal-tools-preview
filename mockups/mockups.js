@@ -663,7 +663,9 @@ function buildGather(svg) {
   img.src = "../shared/assets/brand/library/icon/icon-outline-white.png";
 }
 
-const VIEWS = { lobby, soft, tiles, night, connected, editorial, library, warm, resource };
+// Shortlist (Oct 27): Lobby, Night and Connected. The others stay below in
+// case Ryan wants one back.
+const VIEWS = { lobby, night, connected };
 const app = document.getElementById("app");
 const btns = [...document.querySelectorAll(".switcher button")];
 
@@ -686,7 +688,7 @@ document.addEventListener("keydown", (e) => {
   const i = keys.indexOf(document.body.dataset.v);
   if (e.key === "ArrowRight") show(keys[(i + 1) % keys.length]);
   if (e.key === "ArrowLeft") show(keys[(i + keys.length - 1) % keys.length]);
-  if (/^[1-9]$/.test(e.key)) show(keys[+e.key - 1]);
+  if (/^[1-9]$/.test(e.key) && keys[+e.key - 1]) show(keys[+e.key - 1]);
 });
 show(location.hash.slice(1), false);
 matchMedia("(max-width: 900px)").addEventListener("change", () => {
