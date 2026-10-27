@@ -944,3 +944,9 @@ main > .d-card { margin-bottom: 14px; }
   .x-card-h { flex-wrap: wrap; }
   .x-tag { display: none; }
 }
+
+/* Shared welcome (Oct 27): "Hi, name" then "Welcome to the Staff Hub". */
+.l-hero h1 span { display: block; margin-top: 10px; font-size: .42em; font-weight: 600; letter-spacing: -.015em; color: var(--lime); }
+.l-sub { margin-top: 14px; max-width: 52ch; font-size: 1.05rem; color: #E7F4F8; }
+.n-hero h1 span { display: block; margin-top: 6px; font-size: .62em; color: var(--lime); }
+.d-head h1 span, .x-head h1 span { display: block; margin-top: 2px; font-size: .6em; font-weight: 600; color: var(--teal-d); letter-spacing: -.01em; }

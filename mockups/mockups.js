@@ -69,6 +69,9 @@ const C = {
   ],
   nav: ["Home", "Requests", "Software", "HR", "Roster"],
   searchPh: "Search the hub, or ask where something lives",
+  // The same welcome on every version (Ryan, Oct 27).
+  welcome: "Welcome to the Staff Hub",
+  connecting: "Connecting every one of us with the forms, tools and people we need.",
 };
 
 const logo = (white) =>
@@ -97,8 +100,8 @@ function lobby() {
   <main id="main">
     <section class="l-hero">
       <div class="wrap">
-        <p class="l-hi">Hi ${C.name}, welcome to</p>
-        <h1>Staff Hub</h1>
+        <h1>Hi, ${C.name}<span>${C.welcome}</span></h1>
+        <p class="l-sub">${C.connecting}</p>
         <p class="l-ann">${ic("horn")}<span>${C.announce.text}</span></p>
       </div>
     </section>
@@ -271,8 +274,8 @@ function night() {
     </header>
     <main id="main">
       <section class="n-hero">
-        <h1>Everything you need,<br>all in one place.</h1>
-        <p>Hi ${C.name}. Search for a form, policy or person, start a request, or jump into the tools you use every day.</p>
+        <h1>Hi, ${C.name}<span>${C.welcome}</span></h1>
+        <p>${C.connecting}</p>
         <div class="n-btns">
           <a class="n-btn light" href="#">Start a request</a>
           <a class="n-btn dark" href="#">Browse the hub ${ic("out")}</a>
@@ -349,8 +352,8 @@ function connected() {
       <svg class="c-gather" viewBox="0 0 1000 420" preserveAspectRatio="xMaxYMid slice" aria-hidden="true"></svg>
       <div class="c-copy">
         <a class="c-badge" href="#">${ic("horn")}<span>Open Enrollment meeting · Wed, Oct 28</span><em>Details ›</em></a>
-        <h1>Hi, ${C.name}<br><span>Welcome to the Staff Hub</span></h1>
-        <p><b>Connecting</b> every one of us with the forms, tools and people we need. Many people, one church.</p>
+        <h1>Hi, ${C.name}<br><span>${C.welcome}</span></h1>
+        <p>${C.connecting}</p>
         ${searchField("c-search")}
       </div>
       <p class="c-foot"><span></span><span>${C.dateLong}</span></p>
@@ -691,7 +694,7 @@ function dashboard() {
       </header>
       <main id="main">
         <div class="d-head">
-          <div><h1>Hi, ${C.name}</h1><p>Everything you need for your work at Cornerstone, in one place.</p></div>
+          <div><h1>Hi, ${C.name}<span>${C.welcome}</span></h1><p>${C.connecting}</p></div>
           <span class="d-date">${ic("clock")}${C.dateLong}</span>
         </div>
         <div class="d-row">
@@ -765,7 +768,7 @@ function workspace() {
     </aside>
     <main id="main" class="x-main">
       <div class="x-crumb">${ic("home")}<span>Home</span></div>
-      <div class="x-head"><div><h1>Hi, ${C.name}</h1><p>Welcome to the Staff Hub. Here is what's happening and where to go.</p></div>
+      <div class="x-head"><div><h1>Hi, ${C.name}<span>${C.welcome}</span></h1><p>${C.connecting}</p></div>
         <a class="x-btn" href="#">${ic("plus")}New request</a></div>
       <div class="x-cards">
         ${C.sections.map((x, i) => `<a class="x-card x-sec" href="#">
