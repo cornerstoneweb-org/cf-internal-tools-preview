@@ -2,6 +2,8 @@
 // reference. Content mirrors tools/staff-hub/content.js (public copy only).
 // Local design exploration; not part of the hub.
 
+import { CONTENT } from "../tools/staff-hub/content.js";
+
 const I = {
   mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
   chat: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',
@@ -730,9 +732,89 @@ function dashboard() {
   </div>`;
 }
 
+/* ---------- Workspace (Employra HR Platform, Flow Forge) ---------- */
+// Same bones as the reference, but no stats we do not have: the top cards
+// are the hub's sections, and "Coming up" uses the real pay dates, holidays
+// and the current announcement from content.js.
+function workspace() {
+  const today = now.toLocaleDateString("en-CA");
+  const fmt = (d) => new Date(d + "T12:00:00");
+  const coming = [
+    { d: "2026-10-28", t: "Open Enrollment meeting", n: "10 AM, Livermore campus, 4/5 Grade Room", k: "horn" },
+    ...(CONTENT.payDates ?? []).filter(([p]) => p >= today).slice(0, 2).map(([p]) => ({ d: p, t: "Payday", n: "Every other Thursday", k: "clock" })),
+    ...(CONTENT.holidays ?? []).filter(([h]) => h >= today).slice(0, 2).map(([h, name]) => ({ d: h, t: name, n: "Offices closed", k: "sunrise" })),
+  ].filter((x) => x.d >= today).sort((a, b) => a.d.localeCompare(b.d)).slice(0, 4);
+  const cardTint = ["x-teal", "x-orange", "x-lime", "x-cyan"];
+  const sw = (CONTENT.sections.find((x) => x.id === "software")?.cards ?? []).slice(0, 6).map((c) => ({ title: c.title, body: c.body }));
+  const hr = [["Pay Dates", "Paydays and pay periods"], ["Holidays", "Days the offices are closed"], ["Employee Handbook", "Search any policy"], ["Labor Law Notices", "Required workplace notices"], ["Staff Roster", "Find anyone on staff"]];
+  const tabs = {
+    requests: C.requests.map((r) => ({ title: r.title, body: r.body, tag: r.team })),
+    software: sw.map((x) => ({ ...x, tag: "Software" })),
+    hr: hr.map(([title, body]) => ({ title, body, tag: "HR" })),
+  };
+  const rows = (list) => list.map((r) => `<li><a href="#"><span class="x-ri">${ic("doc")}</span><span class="x-rn"><b>${r.title}</b><small>${r.body}</small></span><span class="x-tag">${r.tag}</span>${ic("chev", "ic x-chev")}</a></li>`).join("");
+  const navGroup = (label, items) => `<p class="x-group">${label}</p><nav class="x-nav" aria-label="${label}">${items.map(([k, l, cur]) => `<a href="#" ${cur ? 'aria-current="page"' : ""}>${ic(k)}<span>${l}</span></a>`).join("")}</nav>`;
+  return `
+  <div class="x-shell">
+    <aside class="x-side">
+      <div class="x-brand">${logo(false)}</div>
+      ${searchField("x-search", '<kbd>⌘K</kbd>')}
+      ${navGroup("Staff Hub", [["home", "Home", true], ["doc", "Requests"], ["grid", "Software"], ["people", "Human Resources"], ["layers", "Brand"], ["person", "Staff Roster"]])}
+      ${navGroup("Every day", C.quick.slice(0, 4).map((q) => [q.k, q.label]))}
+      <div class="x-user"><span class="x-av">RB</span><span><b>${C.name} Bicker</b><small>Signed in with Microsoft</small></span></div>
+    </aside>
+    <main id="main" class="x-main">
+      <div class="x-crumb">${ic("home")}<span>Home</span></div>
+      <div class="x-head"><div><h1>Hi, ${C.name}</h1><p>Welcome to the Staff Hub. Here is what's happening and where to go.</p></div>
+        <a class="x-btn" href="#">${ic("plus")}New request</a></div>
+      <div class="x-cards">
+        ${C.sections.map((x, i) => `<a class="x-card x-sec" href="#">
+          <span class="x-sq ${cardTint[i]}">${ic(x.k)}</span>
+          <small>${x.title}</small><b>${x.body}</b>
+          <span class="x-foot">Open ${ic("arrow")}</span></a>`).join("")}
+      </div>
+      <div class="x-grid">
+        <section class="x-card x-tabs" aria-labelledby="x-tabs-h">
+          <div class="x-card-h"><h2 id="x-tabs-h">Find what you need</h2>
+            <div class="x-seg" role="tablist">${Object.keys(tabs).map((k, i) => `<button type="button" role="tab" data-tab="${k}" aria-selected="${i === 0}">${{ requests: "Requests", software: "Software", hr: "HR" }[k]}</button>`).join("")}</div></div>
+          <ul class="x-rows" data-tabs='${JSON.stringify(Object.fromEntries(Object.entries(tabs).map(([k, v]) => [k, rows(v)]))).replace(/'/g, "&#39;")}'>${rows(tabs.requests)}</ul>
+        </section>
+        <section class="x-card x-note" aria-labelledby="x-note-h">
+          <div class="x-card-h"><h2 id="x-note-h">Heads up</h2><span class="x-badge">1 new</span></div>
+          <div class="x-note-item"><span class="x-ri orange">${ic("horn")}</span>
+            <div><p><b>Employee Benefits Open Enrollment</b> meeting</p><small>Wed, Oct 28, 10 AM · Livermore campus, 4/5 Grade Room</small>
+            <div class="x-note-act"><a class="x-ghost" href="#">Hide</a><a class="x-btn small" href="#">Details</a></div></div></div>
+        </section>
+        <section class="x-card x-quick" aria-labelledby="x-quick-h">
+          <div class="x-card-h"><h2 id="x-quick-h">Your quick links</h2><a class="x-btn small" href="#">${ic("plus")}Customize</a></div>
+          <ul>${C.quick.map((q) => `<li><a href="#"><span class="x-ri">${ic(q.k)}</span><span class="x-rn"><b>${q.label}</b><small>${q.note}</small></span>${ic("out", "ic x-chev")}</a></li>`).join("")}</ul>
+        </section>
+        <section class="x-card x-coming" aria-labelledby="x-coming-h">
+          <div class="x-card-h"><h2 id="x-coming-h">Coming up</h2></div>
+          <ul>${coming.map((e) => `<li><span class="x-cal"><small>${fmt(e.d).toLocaleDateString("en-US", { month: "short" })}</small><b>${fmt(e.d).getDate()}</b></span><span class="x-rn"><b>${e.t}</b><small>${fmt(e.d).toLocaleDateString("en-US", { weekday: "long" })} · ${e.n}</small></span></li>`).join("")}</ul>
+        </section>
+      </div>
+      <section class="x-card x-values" aria-labelledby="x-val-h">
+        <div class="x-card-h"><h2 id="x-val-h">How we work around here</h2></div>
+        <ul>${C.values.map((v) => `<li>${ic(v.k)}<b>${v.title}</b><small>${v.short}</small></li>`).join("")}</ul>
+      </section>
+    </main>
+  </div>`;
+}
+
 // Shortlist (Oct 27): Lobby, Night and Connected. The others stay below in
 // case Ryan wants one back.
-const VIEWS = { lobby, night, connected, dashboard };
+function wireSeg() {
+  const list = app.querySelector(".x-rows");
+  if (!list) return;
+  const html = JSON.parse(list.dataset.tabs);
+  app.querySelectorAll(".x-seg [data-tab]").forEach((b) => b.addEventListener("click", () => {
+    app.querySelectorAll(".x-seg [data-tab]").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
+    list.innerHTML = html[b.dataset.tab];
+  }));
+}
+
+const VIEWS = { lobby, night, connected, dashboard, workspace };
 const app = document.getElementById("app");
 const btns = [...document.querySelectorAll(".switcher button")];
 
@@ -741,6 +823,7 @@ function show(v, push = true) {
   document.body.dataset.v = v;
   document.body.style.removeProperty("--hue");
   app.innerHTML = VIEWS[v]();
+  wireSeg();
   const g = app.querySelector(".c-gather");
   if (g) buildGather(g);
   btns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === v)));
