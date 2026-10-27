@@ -70,7 +70,7 @@ const C = {
 };
 
 const logo = (white) =>
-  `<img class="logo" src="/shared/assets/brand/cf-logo-horizontal-${white ? "white" : "black"}.png" alt="Cornerstone Fellowship">`;
+  `<img class="logo" src="../shared/assets/brand/cf-logo-horizontal-${white ? "white" : "black"}.png" alt="Cornerstone Fellowship">`;
 const navLinks = (cls = "") =>
   C.nav.map((n, i) => `<a href="#" class="${cls}" ${i === 0 ? 'aria-current="page"' : ""}>${n}</a>`).join("");
 const searchField = (cls, btn = "") => `
@@ -332,7 +332,7 @@ function campusMap(dark) {
     <g class="c-sq">${sq.join("")}</g>
     <g class="c-arcs">${arcs.join("")}</g>
     <g class="c-spokes">${pins.map((p) => `<path d="M${cx} ${cy} L${p.x} ${p.y}"/>`).join("")}</g>
-    <g class="c-center"><circle cx="${cx}" cy="${cy}" r="40"/><image href="/shared/assets/brand/cf-icon-white.png" x="${cx - 24}" y="${cy - 24}" width="48" height="48"/></g>
+    <g class="c-center"><circle cx="${cx}" cy="${cy}" r="40"/><image href="../shared/assets/brand/cf-icon-white.png" x="${cx - 24}" y="${cy - 24}" width="48" height="48"/></g>
     ${pins.map((p) => `<g class="c-pin"><circle cx="${p.x}" cy="${p.y}" r="14"/><path d="M${p.x - 6} ${p.y}h12M${p.x} ${p.y - 6}v12"/><text x="${p.x}" y="${p.y + 36}">${p.n}</text></g>`).join("")}
   </svg>`;
 }
@@ -346,15 +346,12 @@ function connected() {
     <section class="c-slide c-dark">
       <svg class="c-gather" viewBox="0 0 1000 420" preserveAspectRatio="xMaxYMid slice" aria-hidden="true"></svg>
       <div class="c-copy">
-        <h1>The Connected<br><span>Staff Hub</span></h1>
+        <a class="c-badge" href="#">${ic("horn")}<span>Open Enrollment meeting · Wed, Oct 28</span><em>Details ›</em></a>
+        <h1>Hi, ${C.name}<br><span>Welcome to the Staff Hub</span></h1>
         <p><b>Connecting</b> every one of us with the forms, tools and people we need. Many people, one church.</p>
         ${searchField("c-search")}
       </div>
-      <p class="c-foot"><span>Hi, ${C.name}</span><span>${C.dateLong}</span></p>
-    </section>
-    <section class="c-slide c-light c-ann">
-      <h2>${C.announce.label}</h2>
-      <p>${C.announce.text}</p>
+      <p class="c-foot"><span></span><span>${C.dateLong}</span></p>
     </section>
     <section class="c-slide c-light c-split">
       <div>
@@ -615,7 +612,7 @@ function buildGather(svg) {
   const { W, H, STEP, SIZE, MSTEP, MSIZE, fade } = L;
   // A different CF color each visit: green, blue or orange.
   const hues = ["#CDD943", "#32B9DB", "#FE8730"];
-  svg.closest(".c-slide").style.setProperty("--hue", hues[Math.floor(Math.random() * hues.length)]);
+  document.body.style.setProperty("--hue", hues[Math.floor(Math.random() * hues.length)]);
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   svg.setAttribute("preserveAspectRatio", phone ? "xMidYMin slice" : "xMaxYMid slice");
   const ox = L.cx - (N * MSTEP) / 2, oy = L.cy - (N * MSTEP) / 2;
@@ -663,7 +660,7 @@ function buildGather(svg) {
     }
     else people.forEach((r) => r.classList.add("in"));
   };
-  img.src = "/shared/assets/brand/library/icon/icon-outline-white.png";
+  img.src = "../shared/assets/brand/library/icon/icon-outline-white.png";
 }
 
 const VIEWS = { lobby, soft, tiles, night, connected, editorial, library, warm, resource };
@@ -673,6 +670,7 @@ const btns = [...document.querySelectorAll(".switcher button")];
 function show(v, push = true) {
   if (!VIEWS[v]) v = "lobby";
   document.body.dataset.v = v;
+  document.body.style.removeProperty("--hue");
   app.innerHTML = VIEWS[v]();
   const g = app.querySelector(".c-gather");
   if (g) buildGather(g);
