@@ -663,9 +663,76 @@ function buildGather(svg) {
   img.src = "../shared/assets/brand/library/icon/icon-outline-white.png";
 }
 
+/* ---------- Dashboard (HRMS Dashboard, Awe Design Studio) ---------- */
+function dashboard() {
+  // This week, Monday to Sunday, with today ringed and known events dotted.
+  const events = { "2026-10-28": "Open Enrollment meeting" };
+  const iso = (d) => d.toLocaleDateString("en-CA");   // YYYY-MM-DD, local time
+  const mon = new Date(now); mon.setHours(12, 0, 0, 0); mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7));
+  const week = Array.from({ length: 7 }, (_, i) => { const d = new Date(mon); d.setDate(mon.getDate() + i); return d; });
+  const nav = [["home", "Home"], ["doc", "Requests"], ["grid", "Software"], ["people", "Human Resources"], ["layers", "Brand"], ["person", "Staff Roster"]];
+  return `
+  <div class="d-shell">
+    <aside class="d-side" aria-label="Sidebar">
+      <div class="d-brand">${logo(false)}</div>
+      <p class="d-group">General</p>
+      <nav class="d-nav" aria-label="Main">${nav.map(([k, l], i) => `<a href="#" ${i === 0 ? 'aria-current="page"' : ""}>${ic(k)}${l}</a>`).join("")}</nav>
+      <p class="d-group">Every day</p>
+      <ul class="d-quick">${C.quick.map((q) => `<li><a href="#">${ic(q.k)}${q.label}</a></li>`).join("")}</ul>
+      <div class="d-help"><b>Can't find something?</b><a href="#">Tell Ryan Bicker</a></div>
+    </aside>
+    <div class="d-main">
+      <header class="d-top">
+        ${searchField("d-search")}
+        <a class="d-btn" href="#">${ic("plus")}New request</a>
+        <span class="d-me"><span class="d-av">RB</span><span><b>${C.name}</b><small>Staff Hub</small></span></span>
+      </header>
+      <main id="main">
+        <div class="d-head">
+          <div><h1>Hi, ${C.name}</h1><p>Everything you need for your work at Cornerstone, in one place.</p></div>
+          <span class="d-date">${ic("clock")}${C.dateLong}</span>
+        </div>
+        <div class="d-row">
+          <section class="d-card d-ann" aria-labelledby="d-ann-h">
+            <h2 id="d-ann-h"><span class="d-dot"></span>${C.announce.label}</h2>
+            <p class="d-ann-t">Open Enrollment meeting</p>
+            <dl><div><dt>When</dt><dd>Wed, Oct 28, 10 AM</dd></div><div><dt>Where</dt><dd>Livermore campus, 4/5 Grade Room</dd></div></dl>
+            <a class="d-btn" href="#">Details</a>
+          </section>
+          <section class="d-card d-week" aria-labelledby="d-week-h">
+            <div class="d-card-h"><h2 id="d-week-h">This week</h2>
+              <span class="d-legend"><i class="today"></i>Today <i class="ev"></i>Event</span></div>
+            <ol>${week.map((d) => {
+              const e = events[iso(d)], today = iso(d) === iso(now);
+              return `<li class="${today ? "is-today" : ""}${e ? " has-ev" : ""}"${e ? ` title="${e}"` : ""}>
+                <small>${d.toLocaleDateString("en-US", { weekday: "short" })}</small>
+                <span>${d.getDate()}</span>${e ? `<em>${e}</em>` : ""}</li>`;
+            }).join("")}</ol>
+          </section>
+        </div>
+        <section class="d-card" aria-labelledby="d-req-h">
+          <div class="d-card-h"><h2 id="d-req-h">Start a request</h2><a class="d-ghost" href="#">See all ${ic("arrow")}</a></div>
+          <ul class="d-table">${C.requests.map((r) => `<li>
+              <span class="d-ic">${ic(r.k)}</span>
+              <span class="d-name"><b>${r.title}</b><small>${r.body}</small></span>
+              <span class="d-pill">${r.team}</span>
+              <a class="d-btn small" href="#">Start</a></li>`).join("")}</ul>
+        </section>
+        <div class="d-row d-row-3">
+          ${C.sections.slice(1).map((x) => `<a class="d-card d-sec" href="#"><span class="d-ic">${ic(x.k)}</span><b>${x.title}</b><small>${x.body}</small></a>`).join("")}
+        </div>
+        <section class="d-card" aria-labelledby="d-val-h">
+          <div class="d-card-h"><h2 id="d-val-h">How we work around here</h2></div>
+          <ul class="d-values">${C.values.map((v) => `<li>${ic(v.k)}<b>${v.title}</b><small>${v.short}</small></li>`).join("")}</ul>
+        </section>
+      </main>
+    </div>
+  </div>`;
+}
+
 // Shortlist (Oct 27): Lobby, Night and Connected. The others stay below in
 // case Ryan wants one back.
-const VIEWS = { lobby, night, connected };
+const VIEWS = { lobby, night, connected, dashboard };
 const app = document.getElementById("app");
 const btns = [...document.querySelectorAll(".switcher button")];
 
