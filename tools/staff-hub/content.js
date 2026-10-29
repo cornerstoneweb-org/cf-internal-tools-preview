@@ -122,8 +122,13 @@ export const CONTENT = {
   //   link / linkLabel: optional call to action.
   //   label:  optional tag above the text, e.g. "HR" or "Benefits".
   //           Defaults to "Heads up" (info) or "Important" (urgent).
+  //   title / when: short version for the Home badge, e.g. "Open Enrollment
+  //           meeting" and "Wed, Oct 28". Tapping the badge shows the full text.
+  //           Optional; without a title the badge shows the full text.
   announcement: {
     level: "info",
+    title: "Open Enrollment meeting",
+    when: "Wed, Oct 28",
     text: "Employee Benefits Open Enrollment meeting: Wed, Oct 28, 10 AM, Livermore campus, 4/5 Grade Room.",
     link: null,
     linkLabel: null,

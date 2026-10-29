@@ -74,3 +74,17 @@ export async function selectAll(table, orderBy) {
   if (error) { console.warn(`[auth] ${table}:`, error.message); return []; }
   return data ?? [];
 }
+
+// Writes to a "your own row" table (one row per person, keyed by user_id).
+// The database stamps user_id from the session, so the browser never sends it.
+export async function saveMine(table, values) {
+  const supabase = await getClient();
+  const { error } = await supabase.from(table).upsert(values, { onConflict: "user_id" });
+  if (error) throw error;
+}
+export async function clearMine(table) {
+  const supabase = await getClient();
+  // RLS limits this to the caller's own row; the filter just satisfies the API.
+  const { error } = await supabase.from(table).delete().not("user_id", "is", null);
+  if (error) throw error;
+}

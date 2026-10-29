@@ -33,17 +33,17 @@
 
 /* ---------- Hero ("Connected", 2026-10-25) ---------- */
 /* Dark panel framed in white. --hue is the visit's CF color (green, blue or
-   orange), set by hero-pixels.js; it colors the accent line, the glow and
-   the gathered CF mark. */
+   orange), set on the page root by hero-pixels.js; it colors the accent
+   line, the glow, the gathered CF mark and the page background. */
+:root { --hue: var(--lime); }
 .hero {
-  --hue: var(--lime);
   position: relative; overflow: hidden; isolation: isolate;
   border-radius: 24px; border: 7px solid #fff; margin-top: var(--space-2);
   min-height: 480px; padding: 48px; display: flex; flex-direction: column;
   background:
     radial-gradient(60% 80% at 100% 0%, color-mix(in srgb, var(--hue) 32%, transparent), transparent 60%),
     #232625;
-  color: #fff; box-shadow: 0 18px 40px rgba(107,116,9,.14);
+  color: #fff; box-shadow: 0 18px 40px color-mix(in srgb, var(--hue) 22%, transparent);
 }
 .hero-pixels { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
 .hero-pixels .hp-bg { fill: #333735; }
@@ -52,11 +52,41 @@
   transition: transform 1.6s cubic-bezier(.16,1,.3,1), fill 1.2s ease, opacity 1.2s ease;
 }
 .hero-pixels .hp-p.in { fill: var(--hue); opacity: 1; }
-.hero-text { position: relative; max-width: 540px; margin-top: auto; }
+.hero-text { position: relative; max-width: 600px; margin-top: auto; }
 .hero h1 { margin: 0; color: #fff; font-size: clamp(2.6rem, 5.4vw, 4.2rem); font-weight: 600; letter-spacing: -.035em; line-height: 1.05; }
-.hero h1 span { color: var(--hue); }
+.hero h1 span { display: block; margin-top: 6px; color: var(--hue); font-size: .72em; line-height: 1.1; letter-spacing: -.03em; text-wrap: balance; }
 .hero-sub { margin: 18px 0 0; max-width: 46ch; color: #B9BDBA; font-size: 1rem; line-height: 1.5; }
-.hero-foot { position: relative; display: flex; justify-content: space-between; gap: 12px; margin: 36px 0 0; font-size: .85rem; color: #A6ABA7; }
+.hero-foot { position: relative; margin: 36px 0 0; font-size: .85rem; color: #A6ABA7; text-align: right; }
+/* The Heads up badge. Bright, in the visit's color, fading in a beat after
+   the CF mark gathers (about 2.6s). Tap it to open the full notice. */
+.hero-note { position: relative; z-index: 2; margin-bottom: 22px; max-width: 100%; animation: hn-in .7s cubic-bezier(.16,1,.3,1) 2.6s both; }
+@keyframes hn-in { from { opacity: 0; transform: translateY(10px) scale(.96); } to { opacity: 1; transform: none; } }
+.hero-note summary {
+  display: inline-flex; align-items: center; gap: 10px; max-width: 100%; cursor: pointer; list-style: none;
+  padding: 7px 8px 7px 12px; border-radius: 999px;
+  background: var(--hue); color: var(--jungle); font-weight: 700; font-size: .95rem;
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--hue) 60%, transparent);
+  animation: hn-pulse 1.6s ease-out 3.3s 2;
+}
+@keyframes hn-pulse { to { box-shadow: 0 0 0 14px transparent; } }
+.hero-note summary::-webkit-details-marker { display: none; }
+.hero-note summary:hover { filter: brightness(1.06); }
+.hn-ic { flex: none; display: grid; }
+.hn-ic svg { width: 18px; height: 18px; }
+.hn-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hn-more { flex: none; font-size: .8rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: rgba(22,33,28,.14); }
+.hn-more::after { content: " ›"; }
+.hero-note[open] .hn-more::after { content: " ×"; }
+.hn-panel { position: absolute; left: 0; top: calc(100% + 10px); width: min(440px, 100%); padding: 16px 18px; border-radius: 16px; background: #2B2E2D; border: 1px solid rgba(255,255,255,.14); box-shadow: 0 18px 40px rgba(0,0,0,.35); color: #E3E7E4; }
+.hn-tag { display: block; font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--hue); margin-bottom: 4px; }
+.hn-panel p { margin: 0; font-size: .95rem; line-height: 1.45; }
+.hn-act { display: flex; gap: 8px; padding-top: 12px; }
+.hn-cta, .hn-x {
+  font: inherit; font-size: .85rem; font-weight: 600; border-radius: 999px; padding: 6px 14px; cursor: pointer; text-decoration: none;
+}
+.hn-cta { background: #fff; color: var(--ink); }
+.hn-x { background: none; border: 1px solid rgba(255,255,255,.25); color: #E3E7E4; }
+.hn-x:hover { background: rgba(255,255,255,.08); }
 /* The hero search box on Home. A real input; results render under the hero. */
 .spot {
   margin-top: 26px; width: 100%; height: 54px;
@@ -355,7 +385,8 @@ a.bt-row:hover svg { transform: translateX(3px); color: currentColor; }
   .hero { min-height: 0; padding: min(50vw, 200px) 24px 24px; border-width: 5px; border-radius: 22px; }
   .spot { height: 50px; }
   .spot input { font-size: 16px; }   /* 16px stops iOS zooming on focus */
-  .hero-foot { flex-direction: column; gap: 2px; margin-top: 26px; }
+  .hero-foot { margin-top: 22px; text-align: left; }
+  .hero-note summary { font-size: .88rem; }
 
   .apps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px 8px; }
   .app { width: auto; }
@@ -681,18 +712,18 @@ body.is-locked .gnav, body.is-locked .main, body.is-locked .skip, body.is-locked
    as white framed panels, staff values on a dark panel to bookend the
    hero. Overrides the Apple-leaning rules above where they meet.
    ===================================================================== */
-body { background: linear-gradient(180deg, #FAFBF3 0%, var(--lime-wash) 38%, #E9EFB4 100%) fixed; }
+body { background: linear-gradient(180deg, color-mix(in srgb, var(--hue) 5%, white) 0%, color-mix(in srgb, var(--hue) 13%, white) 38%, color-mix(in srgb, var(--hue) 34%, white) 100%) fixed; }
 
 .quick-block, .browse-block, .home-values {
   margin-top: 18px; padding: 30px 32px;
   background: #fff; border: 7px solid #fff; border-radius: 24px;
-  box-shadow: 0 18px 40px rgba(107,116,9,.14);
+  box-shadow: 0 18px 40px color-mix(in srgb, var(--hue) 22%, transparent);
 }
 .quick-block .sec-head, .browse-block .sec-head, .home-values .sec-head { margin: 0 0 22px; }
 .sec-head h2 { font-weight: 600; }
 
 /* Announcement (info) as a white panel; urgent stays orange. */
-.ann:not(.ann-urgent) { background: #fff; color: var(--ink); box-shadow: 0 18px 40px rgba(107,116,9,.14); border-radius: 20px; }
+.ann:not(.ann-urgent) { background: #fff; color: var(--ink); box-shadow: 0 18px 40px color-mix(in srgb, var(--hue) 22%, transparent); border-radius: 20px; }
 .ann:not(.ann-urgent) .ann-ic { background: var(--lime-wash); color: var(--lime-d); }
 .ann:not(.ann-urgent) .ann-tag { color: var(--lime-d); opacity: 1; }
 .ann:not(.ann-urgent) .ann-cta { background: var(--jungle); color: #fff; }
@@ -721,7 +752,7 @@ a.bt:hover { box-shadow: none; background: var(--lime-wash); }
 /* Staff values on a dark panel. */
 .home-values {
   border-color: #fff; color: #fff;
-  background: radial-gradient(60% 90% at 100% 0%, rgba(205,217,67,.28), transparent 60%), #232625;
+  background: radial-gradient(60% 90% at 100% 0%, color-mix(in srgb, var(--hue) 28%, transparent), transparent 60%), #232625;
 }
 .home-values .sec-head h2 { color: #fff; }
 .home-values .sec-head p { color: #B9BDBA; }
@@ -730,8 +761,8 @@ a.bt:hover { box-shadow: none; background: var(--lime-wash); }
   background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09);
 }
 .hv-item:hover, .hv-item:focus-visible { transform: translateY(-3px); box-shadow: none; background: rgba(255,255,255,.1); }
-.hv-item:focus-visible { outline: 3px solid var(--lime); }
-.hv-ic { color: var(--lime); opacity: 1; }
+.hv-item:focus-visible { outline: 3px solid var(--hue); }
+.hv-ic { color: var(--hue); opacity: 1; }
 .hv-item small { color: #B9BDBA; opacity: 1; }
 .hv-item b { font-size: 1.45rem; font-weight: 600; }
 .hv-item i { color: #CDD2CE; opacity: 1; }
@@ -753,4 +784,68 @@ a.bt:hover { box-shadow: none; background: var(--lime-wash); }
   .hv-row li:last-child { grid-column: 1 / -1; }
   .hv-item { min-height: 150px; padding: 16px; }
   .hv-item b { font-size: 1.3rem; }
+}
+
+/* ---------- Quick links: Edit button and picker (2026-10-25) ---------- */
+.vh { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.sec-head-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.quick-edit { flex: none; padding: 8px 18px; font-size: .9rem; }
+
+.qe { border: 0; padding: 0; background: transparent; width: min(560px, calc(100vw - 24px)); max-height: calc(100dvh - 32px); }
+.qe::backdrop { background: rgba(10, 20, 16, .42); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.qe[open] .qe-card { animation: vd-in .3s var(--ease); }
+.qe-card { background: #fff; border-radius: 24px; padding: 22px 22px 18px; box-shadow: 0 30px 70px rgba(0,0,0,.25); }
+.qe-head { display: flex; align-items: center; justify-content: space-between; }
+.qe-head h2 { font-size: 1.5rem; font-weight: 600; }
+.qe-x { width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--bg); font-size: 1.3rem; cursor: pointer; }
+.qe-help { margin: 6px 0 0; color: var(--slate); font-size: .95rem; }
+.qe h3 { margin: 22px 0 10px; font-size: 1rem; font-weight: 700; display: flex; justify-content: space-between; }
+.qe h3 span { color: var(--faint); font-weight: 600; font-size: .9rem; }
+.qe-chosen, .qe-pool { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.qe-chosen li {
+  display: grid; grid-template-columns: 36px auto 1fr 40px; align-items: center; gap: 8px;
+  padding: 8px 8px 8px 4px; border-radius: 14px; background: color-mix(in srgb, var(--hue) 12%, white);
+  position: relative; user-select: none;
+}
+.qe-chosen li.is-dragging { z-index: 2; background: #fff; box-shadow: 0 12px 28px rgba(0,0,0,.18); }
+.qe-chosen .qe-grip {
+  width: 36px; height: 44px; background: none; cursor: grab; touch-action: none; color: var(--faint);
+  display: grid; place-items: center;
+}
+.qe-chosen .qe-grip svg { width: 20px; height: 20px; fill: currentColor; }
+.qe-chosen .qe-grip:hover { background: none; color: var(--ink); }
+.qe-chosen li.is-dragging .qe-grip { cursor: grabbing; }
+.qe-chosen button {
+  width: 40px; height: 40px; border-radius: 10px; border: 0; background: rgba(255,255,255,.7);
+  font-size: 1.05rem; color: var(--ink); cursor: pointer;
+}
+.qe-chosen button:hover:not(:disabled) { background: #fff; }
+.qe-chosen button:disabled { opacity: .3; cursor: default; }
+.qe-ic { display: grid; color: var(--lime-d); }
+.qe-ic svg { width: 22px; height: 22px; }
+.qe-name { min-width: 0; display: grid; }
+.qe-name b { font-weight: 600; font-size: .98rem; }
+.qe-name small { color: var(--slate); font-size: .82rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qe-group { margin: 14px 0 6px; font-size: .8rem; font-weight: 700; color: var(--faint); }
+.qe-pool button {
+  width: 100%; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px;
+  padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line); background: #fff;
+  font: inherit; color: inherit; text-align: left; cursor: pointer;
+}
+.qe-pool button:hover:not(:disabled) { border-color: var(--teal-d); }
+.qe-pool button:disabled { opacity: .45; cursor: default; }
+.qe-plus { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--jungle); color: #fff; font-size: 1.1rem; }
+.qe-foot {
+  position: sticky; bottom: -18px; margin: 20px -22px -18px; padding: 14px 22px 18px;
+  background: #fff; border-top: 1px solid var(--line); border-radius: 0 0 24px 24px;
+  display: flex; align-items: center; gap: 8px;
+}
+.qe-reset { margin-right: auto; border: 0; background: none; padding: 8px 0; font: inherit; font-size: .88rem; color: var(--teal-d); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+@media (max-width: 720px) {
+  .sec-head-row { align-items: flex-start; }
+  .qe { width: calc(100vw - 16px); }
+  .qe-card { padding: 18px 16px 16px; border-radius: 20px; }
+  .qe-foot { margin: 18px -16px -16px; padding: 12px 16px 16px; flex-wrap: wrap; bottom: -16px; }
+  .qe-reset { width: 100%; text-align: left; }
+  .qe-foot .btn { flex: 1; justify-content: center; }
 }

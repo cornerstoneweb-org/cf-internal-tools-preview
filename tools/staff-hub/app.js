@@ -2,7 +2,7 @@ import { CONFIG } from "./config.js";
 import { CONTENT } from "./content.js";
 import { CAMPUSES, TOOLS, PREVIEW_HOSTS } from "../../config/site.config.js";
 import { BRAND_LIBRARY } from "./brand-library.js";
-import { getSession, isStaff, displayName, userMeta, signIn, signOut, selectAll } from "../../shared/js/auth.js";
+import { getSession, isStaff, displayName, userMeta, signIn, signOut, selectAll, saveMine, clearMine } from "../../shared/js/auth.js";
 import { watchForNewVersion } from "../../shared/js/version-check.js";
 import { toast } from "../../shared/js/ui.js";
 import { mountFacilities } from "../facilities/facilities.js";
@@ -147,6 +147,47 @@ const SECTIONS = CONTENT.sections.map((s) => ({
     : c),
 }));
 const QUICK_ACTIONS = (CONTENT.quickActions ?? []).filter((a) => !hiddenUrl(a.url));
+const slug = (t) => String(t ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+// Quick links each person can choose (2026-10-25). Only the hub's own links
+// are offered, never a typed-in address, so every choice works. Picks are
+// saved as these keys in the quick_link_prefs table (own row only, RLS).
+// A key whose link is later removed is simply skipped.
+const QUICK_MAX = 12;
+const GRIP = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>';
+let myQuick = null;   // null = the usual links from content.js
+function quickCatalog() {
+  const G = CONFIG.labels.quickGroups;
+  const fromCards = (id, prefix, icon, group) => (sections().find((x) => x.id === id && x.enabled)?.cards ?? [])
+    .map((c) => ({ c, link: (c.links ?? []).find((l) => linkStatus(l) === "ok") }))
+    .filter((x) => x.link)
+    .map(({ c, link }) => ({ key: `${prefix}-${slug(c.title)}`, label: c.title, note: link.label, url: link.url, icon, group }));
+  return [
+    ...QUICK_ACTIONS.map((a) => ({ key: a.id ?? slug(a.label), label: a.label, note: a.note ?? "", url: a.url, icon: a.icon, group: G.everyday })),
+    ...fromCards("software", "sw", "grid", G.software),
+    ...fromCards("requests", "rq", "requests", G.requests),
+    ...liveSections().filter((x) => !onHome(x)).map((x) => ({
+      key: `pg-${x.id}`, label: x.title, note: CONFIG.labels.quickPageNote, url: `#/${x.id}`, icon: x.icon in ICONS ? x.icon : "doc", group: G.pages,
+    })),
+  ];
+}
+function myQuickItems() {
+  const cat = quickCatalog();
+  if (!myQuick) return cat.filter((x) => x.group === CONFIG.labels.quickGroups.everyday);
+  const byKey = new Map(cat.map((x) => [x.key, x]));
+  return myQuick.map((k) => byKey.get(k)).filter(Boolean);
+}
+function appsHTML() {
+  const items = myQuickItems();
+  if (!items.length) return `<p class="empty-soft">${esc(CONFIG.labels.quickEmpty)}</p>`;
+  return items.map((a) => {
+    const out = isInternal(a.url) ? "" : ' target="_blank" rel="noopener"';
+    return `<a class="app" href="${esc(a.url)}"${out}>
+      <span class="app-ic" aria-hidden="true">${ICONS[a.icon] ?? ICONS.doc}</span>
+      <b>${esc(a.label)}</b><span class="app-note">${esc(a.note ?? "")}</span>
+    </a>`;
+  }).join("");
+}
 const sections = () => SECTIONS;
 // Each section's accent rides along as a CSS custom property, so one value in
 // content.js colors the nav dot, the home card and the section page together.
@@ -256,21 +297,22 @@ function greetingText() {
 
 function homeView() {
   const L = CONFIG.labels;
-  // The dark "Connected" hero: a title, one line, the search, and the
-  // greeting and date along the bottom. hero-pixels.js draws the pixel field
+  // The dark "Connected" hero: the greeting, one line, the search, and the
+  // date along the bottom. hero-pixels.js draws the pixel field
   // that gathers into the CF mark.
   const head = CONFIG.features.greeting
     ? `<section class="hero">
          <svg class="hero-pixels" aria-hidden="true"></svg>
          <div class="hero-text">
-           <h1>${esc(L.heroTitle)}<br><span>${esc(L.heroTitleAccent)}</span></h1>
+           ${heroNoticeHTML()}
+           <h1>${esc(withName(greetingText()))}<br><span>${esc(L.heroWelcome)}</span></h1>
            <p class="hero-sub">${esc(L.heroLine)}</p>
            ${CONFIG.features.search ? `<label class="spot">
              ${ICONS.search}<input type="search" id="hero-q" autocomplete="off" spellcheck="false"
                placeholder="${esc(L.heroSearch ?? L.searchPlaceholder)}" aria-label="Search the hub">
            </label>` : ""}
          </div>
-         <p class="hero-foot"><span>${esc(withName(greetingText()))}</span><span>${esc(DATE_FMT.format(new Date()))}</span></p>
+         <p class="hero-foot">${esc(DATE_FMT.format(new Date()))}</p>
        </section>
        <div class="hero-results" id="hero-results" aria-live="polite"></div>`
     : `<div class="welcome">
@@ -281,17 +323,13 @@ function homeView() {
 
   const blockHead = (title, subText) => `<div class="sec-head"><h2>${esc(title)}</h2>${subText ? `<p>${esc(subText)}</p>` : ""}</div>`;
 
-  // Quick links as app icons.
-  const quick = CONFIG.features.quickActions && QUICK_ACTIONS.length
+  // Quick links: the person's own picks, or the usual ones. "Edit" opens
+  // the picker (wireQuickEdit).
+  const quick = CONFIG.features.quickActions
     ? `<section class="quick-block">
-         ${blockHead(L.quickHeading, L.quickSub)}
-         <div class="apps">${QUICK_ACTIONS.map((a) => {
-           const out = isInternal(a.url) ? "" : ' target="_blank" rel="noopener"';
-           return `<a class="app" href="${esc(a.url)}"${out} style="--tile:${esc(a.accent ?? "var(--teal)")};--glyph:${esc(a.ink ?? "#fff")}">
-             <span class="app-ic" aria-hidden="true">${ICONS[a.icon] ?? ""}</span>
-             <b>${esc(a.label)}</b><span class="app-note">${esc(a.note ?? "")}</span>
-           </a>`;
-         }).join("")}</div>
+         <div class="sec-head sec-head-row"><div><h2>${esc(L.quickHeading)}</h2><p>${esc(L.quickSub)}</p></div>
+           <button type="button" class="btn btn-ghost quick-edit" data-quick-edit>${esc(L.quickEdit)}</button></div>
+         <div class="apps" id="apps">${appsHTML()}</div>
        </section>` : "";
 
   // Sections as a tile grid. The first live section gets the big tile and
@@ -915,29 +953,195 @@ function adminView() {
     + `<p class="empty-soft">${esc(CONFIG.labels.adminHowTo)}</p>`;
 }
 
+/* ================= quick links editor ================= */
+function wireQuickEdit() {
+  const L = CONFIG.labels;
+  const d = document.createElement("dialog");
+  d.className = "qe";
+  d.setAttribute("aria-labelledby", "qe-title");
+  document.body.appendChild(d);
+  let draft = [];
+
+  // Drag the handle to reorder (mouse or finger). With a keyboard, focus the
+  // handle and use the up and down arrow keys.
+  const row = (x, i) => `<li data-key="${esc(x.key)}">
+      <button type="button" class="qe-grip" data-i="${i}" aria-label="${esc(L.quickMove(x.label))}">${GRIP}</button>
+      <span class="qe-ic" aria-hidden="true">${ICONS[x.icon] ?? ICONS.doc}</span>
+      <span class="qe-name"><b>${esc(x.label)}</b><small>${esc(x.note)}</small></span>
+      <button type="button" data-qe="remove" data-i="${i}" aria-label="${esc(L.quickRemove(x.label))}">&times;</button>
+    </li>`;
+  function draw() {
+    const cat = quickCatalog();
+    const byKey = new Map(cat.map((x) => [x.key, x]));
+    const chosen = draft.map((k) => byKey.get(k)).filter(Boolean);
+    const full = chosen.length >= QUICK_MAX;
+    const groups = [...new Set(cat.map((x) => x.group))];
+    d.innerHTML = `<div class="qe-card">
+        <div class="qe-head"><h2 id="qe-title">${esc(L.quickEditTitle)}</h2>
+          <button type="button" class="qe-x" data-qe="cancel" aria-label="${esc(L.quickCancel)}">&times;</button></div>
+        <p class="qe-help">${esc(L.quickEditHelp(QUICK_MAX))}</p>
+        <h3>${esc(L.quickShowing)} <span>${chosen.length}/${QUICK_MAX}</span></h3>
+        ${chosen.length ? `<ol class="qe-chosen">${chosen.map((x, i) => row(x, i)).join("")}</ol>`
+          : `<p class="empty-soft">${esc(L.quickNone)}</p>`}
+        <h3>${esc(L.quickAdd)}</h3>
+        ${groups.map((g) => {
+          const left = cat.filter((x) => x.group === g && !draft.includes(x.key));
+          return left.length ? `<p class="qe-group">${esc(g)}</p><ul class="qe-pool">${left.map((x) => `<li>
+              <button type="button" data-qe="add" data-key="${esc(x.key)}" ${full ? "disabled" : ""}>
+                <span class="qe-ic" aria-hidden="true">${ICONS[x.icon] ?? ICONS.doc}</span>
+                <span class="qe-name"><b>${esc(x.label)}</b><small>${esc(x.note)}</small></span>
+                <span class="qe-plus" aria-hidden="true">+</span><span class="vh">${esc(L.quickAddOne)}</span>
+              </button></li>`).join("")}</ul>` : "";
+        }).join("")}
+        <div class="qe-foot">
+          <button type="button" class="qe-reset" data-qe="reset">${esc(L.quickReset)}</button>
+          <button type="button" class="btn btn-ghost" data-qe="cancel">${esc(L.quickCancel)}</button>
+          <button type="button" class="btn" data-qe="save">${esc(L.quickSave)}</button>
+        </div>
+      </div>`;
+  }
+  const refresh = () => { const a = $("apps"); if (a) a.innerHTML = appsHTML(); };
+
+  $("view").addEventListener("click", (e) => {
+    if (!e.target.closest("[data-quick-edit]")) return;
+    draft = myQuickItems().map((x) => x.key);
+    draw();
+    d.showModal();
+  });
+  d.addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-qe]");
+    if (!b) { if (e.target === d) d.close(); return; }
+    const i = Number(b.dataset.i);
+    switch (b.dataset.qe) {
+      case "add": if (draft.length < QUICK_MAX) draft.push(b.dataset.key); break;
+      case "remove": draft.splice(i, 1); break;
+      case "cancel": d.close(); return;
+      case "reset":
+      case "save": {
+        b.disabled = true;
+        try {
+          if (b.dataset.qe === "reset") { await clearMine("quick_link_prefs"); myQuick = null; }
+          else { await saveMine("quick_link_prefs", { links: draft }); myQuick = [...draft]; }
+          refresh();
+          d.close();
+          toast(L.quickSaved);
+        } catch (err) {
+          console.warn("[hub] quick links", err);
+          toast(L.quickSaveFailed);
+          b.disabled = false;
+        }
+        return;
+      }
+      default: return;
+    }
+    // Keep focus nearby after a redraw so keyboard users are not lost.
+    draw();
+    (b.dataset.qe === "remove" && d.querySelector(`[data-qe="remove"][data-i="${Math.min(i, draft.length - 1)}"]`)
+      || d.querySelector(".qe-chosen li:last-child [data-qe=remove]") || d.querySelector(".qe-x"))?.focus();
+  });
+
+  // Keyboard reordering on the grip.
+  d.addEventListener("keydown", (e) => {
+    const g = e.target.closest(".qe-grip");
+    if (!g || (e.key !== "ArrowUp" && e.key !== "ArrowDown")) return;
+    e.preventDefault();
+    const i = Number(g.dataset.i), j = e.key === "ArrowUp" ? i - 1 : i + 1;
+    if (j < 0 || j >= draft.length) return;
+    [draft[i], draft[j]] = [draft[j], draft[i]];
+    draw();
+    d.querySelector(`.qe-grip[data-i="${j}"]`)?.focus();
+  });
+
+  // Drag and drop with pointer events, so it works with a mouse and on phones.
+  let drag = null;
+  d.addEventListener("pointerdown", (e) => {
+    const g = e.target.closest(".qe-grip");
+    if (!g) return;
+    e.preventDefault();
+    const li = g.closest("li");
+    const box = li.getBoundingClientRect();
+    drag = { li, list: li.parentElement, startY: e.clientY, offset: e.clientY - box.top };
+    li.classList.add("is-dragging");
+    g.setPointerCapture(e.pointerId);
+  });
+  d.addEventListener("pointermove", (e) => {
+    if (!drag) return;
+    const { li, list } = drag;
+    li.style.transform = `translateY(${e.clientY - drag.startY}px)`;
+    // Step the row past each neighbour whose middle the pointer has crossed.
+    for (let moved = true; moved;) {
+      moved = false;
+      const prev = li.previousElementSibling, next = li.nextElementSibling;
+      const mid = (el) => { const r = el.getBoundingClientRect(); return r.top + r.height / 2; };
+      const top = li.offsetTop;
+      if (prev && e.clientY < mid(prev)) { list.insertBefore(li, prev); moved = true; }
+      else if (next && e.clientY > mid(next)) { list.insertBefore(li, next.nextSibling); moved = true; }
+      if (moved) {
+        drag.startY += li.offsetTop - top;
+        li.style.transform = `translateY(${e.clientY - drag.startY}px)`;
+      }
+    }
+  });
+  const endDrag = () => {
+    if (!drag) return;
+    draft = [...drag.list.children].map((x) => x.dataset.key);
+    drag = null;
+    draw();
+  };
+  d.addEventListener("pointerup", endDrag);
+  d.addEventListener("pointercancel", endDrag);
+}
+
 /* ================= announcement ================= */
 const KEY = "cf-staffhub-dismissed";
 const ICON_ANN = svg('<path d="M4 10v4a1 1 0 0 0 1 1h2l6 4V5L7 9H5a1 1 0 0 0-1 1z"/><path d="M16.5 9a4 4 0 0 1 0 6"/><path d="M19 6.5a7.5 7.5 0 0 1 0 11"/>');
 const hash = (s) => { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return String(h); };
 
-function announcementHTML() {
+// The current announcement, or null when there is none, it has expired, or
+// this person dismissed it.
+function activeAnnouncement() {
   const a = CONTENT.announcement;
-  if (!CONFIG.features.announcement || !a?.text) return "";
+  if (!CONFIG.features.announcement || !a?.text) return null;
   if (a.until) {
     const until = new Date(a.until + "T23:59:59");
-    if (!Number.isNaN(until.getTime()) && Date.now() > until.getTime()) return "";
+    if (!Number.isNaN(until.getTime()) && Date.now() > until.getTime()) return null;
   }
   const id = hash(a.text + (a.link ?? ""));
-  try { if (localStorage.getItem(KEY) === id) return ""; } catch { /* show it */ }
+  try { if (localStorage.getItem(KEY) === id) return null; } catch { /* show it */ }
   const level = a.level === "urgent" ? "urgent" : "info";
   const tag = a.label ?? (level === "urgent" ? CONFIG.labels.annUrgent : CONFIG.labels.annInfo);
-  const cta = a.link ? `<a class="ann-cta" href="${esc(a.link)}">${esc(a.linkLabel ?? "Details")}</a>` : "";
-  return `<div class="ann ann-${level}" id="ann" data-id="${esc(id)}" role="status">
+  return { a, id, level, tag };
+}
+
+// Info notices live in the Home hero (heroNoticeHTML). The banner across the
+// top is for urgent ones, or for any notice when the hero is off.
+function announcementHTML() {
+  const n = activeAnnouncement();
+  if (!n || (n.level === "info" && CONFIG.features.greeting)) return "";
+  const cta = n.a.link ? `<a class="ann-cta" href="${esc(n.a.link)}">${esc(n.a.linkLabel ?? "Details")}</a>` : "";
+  return `<div class="ann ann-${n.level}" id="ann" data-id="${esc(n.id)}" role="status">
       <span class="ann-ic" aria-hidden="true">${ICON_ANN}</span>
-      <div class="ann-body"><span class="ann-tag">${esc(tag)}</span><p>${esc(a.text)}</p></div>
+      <div class="ann-body"><span class="ann-tag">${esc(n.tag)}</span><p>${esc(n.a.text)}</p></div>
       ${cta}
       <button type="button" id="ann-x" aria-label="Dismiss">&times;</button>
     </div>`;
+}
+
+// A bright badge at the top of the hero text: the event's short name and
+// day, fading in once the CF mark has gathered. Tap it for the full notice.
+function heroNoticeHTML() {
+  const n = activeAnnouncement();
+  if (!n || n.level !== "info") return "";
+  const short = n.a.title ? `${n.a.title}${n.a.when ? ` · ${n.a.when}` : ""}` : n.a.text;
+  const cta = n.a.link ? `<a class="hn-cta" href="${esc(n.a.link)}">${esc(n.a.linkLabel ?? "Details")}</a>` : "";
+  return `<details class="hero-note" data-id="${esc(n.id)}">
+      <summary><span class="hn-ic" aria-hidden="true">${ICON_ANN}</span><span class="hn-text">${esc(short)}</span><span class="hn-more">${esc(CONFIG.labels.annMore)}</span></summary>
+      <div class="hn-panel">
+        <span class="hn-tag">${esc(n.tag)}</span>
+        <p>${esc(n.a.text)}</p>
+        <div class="hn-act">${cta}<button type="button" class="hn-x">${esc(CONFIG.labels.annHide)}</button></div>
+      </div>
+    </details>`;
 }
 
 /* ================= shell ================= */
@@ -1106,6 +1310,14 @@ function boot() {
     try { localStorage.setItem(KEY, el.dataset.id); } catch { /* fine */ }
     el.remove();
   });
+  // The hero notice is redrawn with Home, so listen on the page.
+  document.addEventListener("click", (e) => {
+    const x = e.target.closest(".hn-x");
+    if (!x) return;
+    const note = x.closest(".hero-note");
+    try { localStorage.setItem(KEY, note.dataset.id); } catch { /* fine */ }
+    note.remove();
+  });
 
   const c = CONTENT.contact;
   $("contact").innerHTML = `${esc(c.prompt)} <a href="mailto:${esc(c.email)}">${esc(c.name)}</a>`;
@@ -1113,6 +1325,7 @@ function boot() {
   if (!CONFIG.features.search) $("search-open").hidden = true;
 
   wireValues();
+  wireQuickEdit();
   route();
 }
 
@@ -1178,11 +1391,13 @@ async function start() {
     return showGate(CONFIG.labels.gateNotStaff(session.user.email ?? "That"),
       CONFIG.labels.gateNotStaffButton, () => signOut());
   }
-  const [cards, staff, handbook] = await Promise.all([
+  const [cards, staff, handbook, quickPrefs] = await Promise.all([
     selectAll("hub_cards", "sort_order"),
     selectAll("staff_directory", "last_name"),
     selectAll("handbook_sections", "sort_order"),
+    selectAll("quick_link_prefs"),
   ]);
+  if (quickPrefs[0]) myQuick = quickPrefs[0].links ?? [];
   mergeProtectedCards(cards);
   loadStaff(staff);
   loadHandbook(handbook);

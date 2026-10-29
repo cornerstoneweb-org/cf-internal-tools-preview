@@ -11,6 +11,10 @@ const RES = 240, N = 40;                          // the mark is sampled onto an
 
 let cells = null;   // the mark's lit cells, sampled once per page load
 
+// One color per page load, set on the page root so the background glow,
+// the panel shadows and the hero all match the mark.
+document.documentElement.style.setProperty("--hue", HUES[Math.floor(Math.random() * HUES.length)]);
+
 function sampleMark() {
   if (cells) return Promise.resolve(cells);
   return new Promise((resolve) => {
@@ -57,8 +61,6 @@ function rect(attrs) {
 
 export async function drawHeroPixels(svg) {
   if (!svg) return;
-  const hero = svg.closest(".hero");
-  hero?.style.setProperty("--hue", HUES[Math.floor(Math.random() * HUES.length)]);
   const lit = await sampleMark();
   if (!svg.isConnected) return;   // the page changed while the mark loaded
 

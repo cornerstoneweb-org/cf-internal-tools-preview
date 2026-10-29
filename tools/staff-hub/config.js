@@ -61,6 +61,8 @@ export const CONFIG = {
     // Announcement banner tag, by level (content.js announcement.label overrides)
     annInfo: "Heads up",
     annUrgent: "Important",
+    annHide: "Hide this",
+    annMore: "Details",
 
     // Corner badge on the preview site (PREVIEW_HOSTS in site.config.js)
     previewBadge: "Preview",
@@ -115,11 +117,10 @@ export const CONFIG = {
     welcomeLede: "We're so glad you're here.",
     welcomeBody: [],
     heroSub: "Welcome to the Staff Hub. We're so glad you're here.",
-    // The "Connected" hero (2026-10-25). The accent line takes a
-    // CF color picked at random on each visit: green, blue or orange.
-    heroTitle: "The Connected",
-    heroTitleAccent: "Staff Hub",
-    heroLine: "Connecting every one of us with the forms, tools and people we need. Many people, one church.",
+    // The "Connected" hero (2026-10-25): the greeting, then this line in a
+    // CF color picked at random on each visit (green, blue or orange).
+    heroWelcome: "Welcome to the Staff Hub",
+    heroLine: "Connecting every one of us with the forms, tools and people we need.",
     // Used when the greeting itself does not already say their name.
     heroSubNamed: (name) => `Welcome to the Staff Hub, ${name}. We're so glad you're here.`,
 
@@ -135,6 +136,23 @@ export const CONFIG = {
     ],
     quickHeading: "Quick links",
     quickSub: "The places you go every day.",
+    quickEdit: "Edit",
+    quickEditTitle: "Your quick links",
+    quickEditHelp: (n) => `Pick up to ${n}. Drag the dots to change the order. Your picks follow you to any device.`,
+    quickShowing: "On your Home page",
+    quickAdd: "Add more",
+    quickAddOne: "Add",
+    quickNone: "Nothing picked yet. Add some from the list below.",
+    quickEmpty: "No quick links yet. Tap Edit to pick some.",
+    quickSave: "Save",
+    quickCancel: "Cancel",
+    quickReset: "Go back to the usual links",
+    quickSaved: "Quick links saved.",
+    quickSaveFailed: "Couldn't save your quick links. Check your connection and try again.",
+    quickPageNote: "Staff Hub page",
+    quickMove: (t) => `Move ${t}. Drag, or use the up and down arrow keys.`,
+    quickRemove: (t) => `Remove ${t}`,
+    quickGroups: { everyday: "Everyday", software: "Software", requests: "Requests", pages: "Staff Hub pages" },
     heroSearch: "Search the hub, or ask where something lives",
     browseSub: "Everything staff need, in one place.",
     laterTitle: "Coming later",
