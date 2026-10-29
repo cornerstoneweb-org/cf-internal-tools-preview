@@ -76,7 +76,7 @@
   --nav-h: 52px;
   --max-width: 1180px;
 
-  --font: Manrope, -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif;
+  --font: "DM Sans", -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif;
 
   color-scheme: light;
 }

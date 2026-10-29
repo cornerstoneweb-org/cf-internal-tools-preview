@@ -122,13 +122,16 @@ export const CONTENT = {
   //   link / linkLabel: optional call to action.
   //   label:  optional tag above the text, e.g. "HR" or "Benefits".
   //           Defaults to "Heads up" (info) or "Important" (urgent).
-  //   title / when: short version for the Home badge, e.g. "Open Enrollment
-  //           meeting" and "Wed, Oct 28". Tapping the badge shows the full text.
-  //           Optional; without a title the badge shows the full text.
+  //   title / when / where: short version for the Heads up card on Home,
+  //           e.g. "Open Enrollment meeting", "Wed, Oct 28, 10 AM". Optional;
+  //           without a title the card shows the full text.
+  //   date:   "YYYY-MM-DD", marks the day in Home's "This week". Optional.
   announcement: {
     level: "info",
     title: "Open Enrollment meeting",
-    when: "Wed, Oct 28",
+    when: "Wed, Oct 28, 10 AM",
+    where: "Livermore campus, 4/5 Grade Room",
+    date: "2026-10-28",
     text: "Employee Benefits Open Enrollment meeting: Wed, Oct 28, 10 AM, Livermore campus, 4/5 Grade Room.",
     link: null,
     linkLabel: null,
@@ -146,28 +149,28 @@ export const CONTENT = {
       reviewEvery: 12,
       cards: [
         {
-          title: "Graphic Design",
+          title: "Graphic Design", icon: "brush",
           body: "Request digital or print designs for your ministry.",
           owner: "Communications",
           reviewed: null,
           links: [{ label: "Start a request", url: "https://forms.monday.com/forms/6de2b801c96808d6d23344a75eddab75?r=use1" }],
         },
         {
-          title: "Video Design",
+          title: "Video Design", icon: "play",
           body: "Start a video request for your ministry or program.",
           owner: "Communications",
           reviewed: null,
           links: [{ label: "Start a request", url: "https://forms.monday.com/forms/059e6ecd1f5dc95eb69f8138e27fc9c9?r=use1" }],
         },
         {
-          title: "Web Design",
+          title: "Web Design", icon: "globe",
           body: "Need a new or updated webpage?",
           owner: "Communications",
           reviewed: null,
           links: [{ label: "Start a request", url: "https://forms.monday.com/forms/b4b919ea5e6710981ec65e4228f7d248?r=use1" }],
         },
         {
-          title: "IT Support",
+          title: "IT Support", icon: "laptop",
           body: "Something not working? Let us help.",
           owner: "Dennis",
           reviewed: null,
@@ -176,7 +179,7 @@ export const CONTENT = {
           links: [{ label: "Open a ticket", url: null, status: "pending" }],
         },
         {
-          title: "Facilities",
+          title: "Facilities", icon: "wrench",
           body: "Repairs, building issues, keys and access.",
           owner: "Joe",
           reviewed: null,

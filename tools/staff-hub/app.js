@@ -6,7 +6,6 @@ import { getSession, isStaff, displayName, userMeta, signIn, signOut, selectAll,
 import { watchForNewVersion } from "../../shared/js/version-check.js";
 import { toast } from "../../shared/js/ui.js";
 import { mountFacilities } from "../facilities/facilities.js";
-import { drawHeroPixels } from "./hero-pixels.js";
 
 const LIB = "../../shared/assets/brand/library/";
 
@@ -48,6 +47,9 @@ const ICONS = {
   home:     svg('<path d="M4 10.5 12 4l8 6.5V20h-5.5v-5.5h-5V20H4z"/>'),
   search:   svg('<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>'),
   chevron:  svg('<path d="m9 6 6 6-6 6"/>'),
+  brush:    svg('<path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="m14 6 3 3"/>'),
+  globe:    svg('<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.5 3.6 5.3 3.6 8.5s-1.2 6-3.6 8.5c-2.4-2.5-3.6-5.3-3.6-8.5s1.2-6 3.6-8.5z"/>'),
+  laptop:   svg('<rect x="4.5" y="5" width="15" height="10" rx="1.5"/><path d="M2.5 18.5h19"/>'),
 };
 const isInternal = (url) => String(url ?? "").startsWith("#");
 
@@ -177,6 +179,15 @@ function myQuickItems() {
   const byKey = new Map(cat.map((x) => [x.key, x]));
   return myQuick.map((k) => byKey.get(k)).filter(Boolean);
 }
+// The sidebar's "Every day" list mirrors the person's quick links.
+function renderSideQuick() {
+  const ul = $("side-quick");
+  if (!ul) return;
+  ul.innerHTML = myQuickItems().map((a) => {
+    const out = isInternal(a.url) ? "" : ' target="_blank" rel="noopener"';
+    return `<li><a href="${esc(a.url)}"${out}>${ICONS[a.icon] ?? ICONS.doc}<span>${esc(a.label)}</span></a></li>`;
+  }).join("");
+}
 function appsHTML() {
   const items = myQuickItems();
   if (!items.length) return `<p class="empty-soft">${esc(CONFIG.labels.quickEmpty)}</p>`;
@@ -297,29 +308,21 @@ function greetingText() {
 
 function homeView() {
   const L = CONFIG.labels;
-  // The dark "Connected" hero: the greeting, one line, the search, and the
-  // date along the bottom. hero-pixels.js draws the pixel field
-  // that gathers into the CF mark.
+  // "Dashboard" look (Oct 29): the greeting and date, then cards. Search
+  // lives in the top bar on every page.
   const head = CONFIG.features.greeting
-    ? `<section class="hero">
-         <svg class="hero-pixels" aria-hidden="true"></svg>
-         <div class="hero-text">
-           ${heroNoticeHTML()}
-           <h1>${esc(withName(greetingText()))}<br><span>${esc(L.heroWelcome)}</span></h1>
-           <p class="hero-sub">${esc(L.heroLine)}</p>
-           ${CONFIG.features.search ? `<label class="spot">
-             ${ICONS.search}<input type="search" id="hero-q" autocomplete="off" spellcheck="false"
-               placeholder="${esc(L.heroSearch ?? L.searchPlaceholder)}" aria-label="Search the hub">
-           </label>` : ""}
-         </div>
-         <p class="hero-foot">${esc(DATE_FMT.format(new Date()))}</p>
-       </section>
-       <div class="hero-results" id="hero-results" aria-live="polite"></div>`
+    ? `<div class="dhead">
+         <div><h1>${esc(withName(greetingText()))}<span>${esc(L.heroWelcome)}</span></h1>
+           <p>${esc(L.heroLine)}</p></div>
+         <span class="ddate">${ICONS.clock}${esc(DATE_FMT.format(new Date()))}</span>
+       </div>`
     : `<div class="welcome">
          <h1>${esc(L.welcomeTitle)}</h1>
          <p class="welcome-lede">${esc(L.welcomeLede)}</p>
          ${(L.welcomeBody ?? []).map((para) => `<p>${esc(para)}</p>`).join("")}
        </div>`;
+  const notice = noticeCardHTML();
+  const top = `<div class="drow${notice ? "" : " is-single"}">${notice}${weekCardHTML()}</div>`;
 
   const blockHead = (title, subText) => `<div class="sec-head"><h2>${esc(title)}</h2>${subText ? `<p>${esc(subText)}</p>` : ""}</div>`;
 
@@ -332,41 +335,34 @@ function homeView() {
          <div class="apps" id="apps">${appsHTML()}</div>
        </section>` : "";
 
-  // Sections as a tile grid. The first live section gets the big tile and
-  // lists what is inside it; the rest get a tile each; parked sections share
-  // one quiet "coming later" tile.
+  // The first live section (Requests) as a table of forms, then a card for
+  // each other section. Parked sections share one quiet "Coming later" card.
   let browse = "";
   if (CONFIG.features.browse) {
-    const live = navSections().filter((s) => s.enabled);
-    const parked = CONFIG.features.showDisabled ? navSections().filter((s) => !s.enabled && s.teaser !== false) : [];
+    const live = navSections().filter((x) => x.enabled);
+    const parked = CONFIG.features.showDisabled ? navSections().filter((x) => !x.enabled && x.teaser !== false) : [];
     const [lead, ...rest] = live;
-    const tile = (s) => `<a class="bt" href="#/${esc(s.id)}" style="--sec:${ac(s)}">
-        <span class="bt-ic" aria-hidden="true">${ICONS[s.icon] ?? ICONS.grid}</span>
-        <span class="bt-tag">${esc(s.title)}</span>
-        <h3>${esc(s.blurb)}</h3>
-        <span class="bt-go">${esc(L.open)}</span>
-      </a>`;
-    const leadTile = lead ? `<div class="bt bt-lead" style="--sec:${ac(lead)}">
-        <a class="bt-lead-head" href="#/${esc(lead.id)}">
-          <span class="bt-tag">${esc(lead.title)}</span>
-          <h3>${esc(lead.blurb)}</h3>
-        </a>
-        <ul class="bt-list">${lead.cards.map((c) => {
-          const live = (c.links ?? []).find((l) => linkStatus(l) === "ok");
-          if (!live) return `<li><span class="bt-row is-off">${esc(c.title)}<span class="pill pill-soon">${esc(L.comingSoon)}</span></span></li>`;
-          const out = isInternal(live.url) ? "" : ' target="_blank" rel="noopener"';
-          return `<li><a class="bt-row" href="${esc(live.url)}"${out}>${esc(c.title)}${ICONS.chevron}</a></li>`;
+    const table = lead ? `<section class="dcard" aria-labelledby="dreq-h" style="--sec:${ac(lead)}">
+        <div class="dcard-h"><h2 id="dreq-h">${esc(L.startRequest)}</h2><a class="dlink" href="#/${esc(lead.id)}">${esc(L.seeAll)} ${ICONS.chevron}</a></div>
+        <ul class="dtable">${lead.cards.map((c) => {
+          const link = (c.links ?? []).find((l) => linkStatus(l) === "ok");
+          const out = link && !isInternal(link.url) ? ' target="_blank" rel="noopener"' : "";
+          return `<li${link ? "" : ' class="is-off"'}>
+            <span class="dic" aria-hidden="true">${ICONS[c.icon] ?? ICONS.requests}</span>
+            <span class="dname"><b>${esc(c.title)}</b><small>${esc(c.body)}</small></span>
+            ${c.owner && CONFIG.features.freshness ? `<span class="dpill">${esc(c.owner)}</span>` : ""}
+            ${link ? `<a class="btn btn-small" href="${esc(link.url)}"${out} aria-label="${esc(`${link.label}: ${c.title}`)}">${esc(L.startShort)}</a>`
+              : `<span class="pill pill-soon">${esc(L.comingSoon)}</span>`}
+          </li>`;
         }).join("")}</ul>
-      </div>` : "";
-    const later = parked.length ? `<div class="bt bt-later" aria-disabled="true" aria-label="${esc(L.laterTitle)}">
-        <span class="bt-ic" aria-hidden="true">${ICONS.book}</span>
-        <h3>${esc(parked.map((s) => s.title).join(", "))}</h3>
-        <span class="bt-go">${esc(L.comingSoon)}</span>
-      </div>` : "";
-    browse = `<section class="browse-block">
-        ${blockHead(L.browseHeading, L.browseSub)}
-        <div class="bento">${leadTile}${rest.map(tile).join("")}${later}</div>
-      </section>`;
+      </section>` : "";
+    const cards = rest.map((x) => `<a class="dcard dsec" href="#/${esc(x.id)}" style="--sec:${ac(x)}">
+        <span class="dic" aria-hidden="true">${ICONS[x.icon] ?? ICONS.grid}</span>
+        <b>${esc(x.title)}</b><small>${esc(x.blurb)}</small></a>`).join("");
+    const later = parked.length ? `<div class="dcard dsec dlater">
+        <span class="dic" aria-hidden="true">${ICONS.book}</span>
+        <b>${esc(L.laterTitle)}</b><small>${esc(parked.map((x) => x.title).join(", "))}</small></div>` : "";
+    browse = `${table}<div class="dgrid">${cards}${later}</div>`;
   }
 
   // Staff values as five color cards. Tapping one opens the full wording
@@ -421,8 +417,10 @@ function homeView() {
     panels = `<div class="cols">${tools}${attention}</div>`;
   }
 
-  // Order: greeting, daily links, sections, then the values.
-  return `${head}${quick}${browse}${values}${tiles}${panels}`;
+  // Order: greeting, this week, requests, quick links, sections, values.
+  const reqTable = browse.slice(0, browse.indexOf('<div class="dgrid">'));
+  const secGrid = browse.slice(reqTable.length);
+  return `${head}${top}${reqTable}${quick}${secGrid}${values}${tiles}${panels}`;
 }
 
 function sectionView(section) {
@@ -1000,7 +998,7 @@ function wireQuickEdit() {
         </div>
       </div>`;
   }
-  const refresh = () => { const a = $("apps"); if (a) a.innerHTML = appsHTML(); };
+  const refresh = () => { const a = $("apps"); if (a) a.innerHTML = appsHTML(); renderSideQuick(); };
 
   $("view").addEventListener("click", (e) => {
     if (!e.target.closest("[data-quick-edit]")) return;
@@ -1113,7 +1111,7 @@ function activeAnnouncement() {
   return { a, id, level, tag };
 }
 
-// Info notices live in the Home hero (heroNoticeHTML). The banner across the
+// Info notices live in a card on Home (noticeCardHTML). The banner across the
 // top is for urgent ones, or for any notice when the hero is off.
 function announcementHTML() {
   const n = activeAnnouncement();
@@ -1127,21 +1125,52 @@ function announcementHTML() {
     </div>`;
 }
 
-// A bright badge at the top of the hero text: the event's short name and
-// day, fading in once the CF mark has gathered. Tap it for the full notice.
-function heroNoticeHTML() {
+// The Heads up card on Home: the event's short name, when and where, and
+// a Details toggle for the full notice. Hide dismisses it for this person.
+function noticeCardHTML() {
   const n = activeAnnouncement();
   if (!n || n.level !== "info") return "";
-  const short = n.a.title ? `${n.a.title}${n.a.when ? ` · ${n.a.when}` : ""}` : n.a.text;
-  const cta = n.a.link ? `<a class="hn-cta" href="${esc(n.a.link)}">${esc(n.a.linkLabel ?? "Details")}</a>` : "";
-  return `<details class="hero-note" data-id="${esc(n.id)}">
-      <summary><span class="hn-ic" aria-hidden="true">${ICON_ANN}</span><span class="hn-text">${esc(short)}</span><span class="hn-more">${esc(CONFIG.labels.annMore)}</span></summary>
-      <div class="hn-panel">
-        <span class="hn-tag">${esc(n.tag)}</span>
-        <p>${esc(n.a.text)}</p>
-        <div class="hn-act">${cta}<button type="button" class="hn-x">${esc(CONFIG.labels.annHide)}</button></div>
-      </div>
-    </details>`;
+  const L = CONFIG.labels;
+  const cta = n.a.link ? `<a class="btn btn-small" href="${esc(n.a.link)}">${esc(n.a.linkLabel ?? L.annMore)}</a>` : "";
+  return `<section class="dcard dnote" data-ann-id="${esc(n.id)}" aria-labelledby="dnote-h">
+      <h2 id="dnote-h"><span class="ddot" aria-hidden="true"></span>${esc(n.tag)}</h2>
+      <p class="dnote-t">${esc(n.a.title ?? n.a.text)}</p>
+      ${n.a.when || n.a.where ? `<dl>
+        ${n.a.when ? `<div><dt>${esc(L.annWhen)}</dt><dd>${esc(n.a.when)}</dd></div>` : ""}
+        ${n.a.where ? `<div><dt>${esc(L.annWhere)}</dt><dd>${esc(n.a.where)}</dd></div>` : ""}
+      </dl>` : ""}
+      <details class="dnote-more"><summary>${esc(L.annMore)}</summary><p>${esc(n.a.text)}</p></details>
+      <div class="dnote-act">${cta}<button type="button" class="btn btn-ghost btn-small hn-x">${esc(L.annHide)}</button></div>
+    </section>`;
+}
+
+// This week, Monday to Sunday: today ringed, and the notice's date, paydays
+// and office holidays marked. Every date comes from content.js.
+function weekCardHTML() {
+  const L = CONFIG.labels;
+  const iso = (d) => d.toLocaleDateString("en-CA");
+  const ev = new Map();
+  const add = (date, label, kind) => { if (!ev.has(date)) ev.set(date, { label, kind }); };
+  const n = activeAnnouncement();
+  if (n?.a.date) add(n.a.date, n.a.title ?? n.tag, "notice");
+  for (const [d, name] of CONTENT.holidays ?? []) add(d, `${name} (${L.weekClosed})`, "holiday");
+  for (const [d] of CONTENT.payDates ?? []) add(d, L.weekPayday, "payday");
+  const now = new Date();
+  const mon = new Date(now); mon.setHours(12, 0, 0, 0); mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7));
+  const today = iso(now);
+  const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(mon); d.setDate(mon.getDate() + i); return d; });
+  return `<section class="dcard dweek" aria-labelledby="dweek-h">
+      <div class="dcard-h"><h2 id="dweek-h">${esc(L.weekHeading)}</h2>
+        <span class="dlegend"><i class="is-today"></i>${esc(L.weekToday)}<i class="is-ev"></i>${esc(L.weekEvent)}</span></div>
+      <ol>${days.map((d) => {
+        const key = iso(d), e = ev.get(key), on = key === today;
+        const label = d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+        return `<li class="${on ? "is-today" : ""}${e ? ` has-ev ev-${e.kind}` : ""}">
+          <small aria-hidden="true">${esc(d.toLocaleDateString("en-US", { weekday: "short" }))}</small>
+          <span aria-label="${esc(label + (on ? `, ${L.weekToday}` : ""))}">${d.getDate()}</span>
+          ${e ? `<em>${esc(e.label)}</em>` : ""}</li>`;
+      }).join("")}</ol>
+    </section>`;
 }
 
 /* ================= shell ================= */
@@ -1154,6 +1183,13 @@ function renderNav(active) {
     items.push(`<a href="#/${esc(s.id)}"${cls} style="--sec:${ac(s)}"${active === s.id ? ' aria-current="page"' : ""}>${esc(s.title)}</a>`);
   }
   $("nav").innerHTML = items.join("");
+  // The desktop sidebar: the same links with icons.
+  const side = $("side-nav");
+  if (side) {
+    const link = (id, title, icon) => `<a href="#/${esc(id)}"${active === id ? ' class="is-active" aria-current="page"' : ""}>${ICONS[icon] ?? ICONS.doc}<span>${esc(title)}</span></a>`;
+    side.innerHTML = link("home", CONFIG.labels.home ?? "Home", "home")
+      + navSections().filter((x) => x.enabled).map((x) => link(x.id, x.title, x.icon)).join("");
+  }
   renderTabs(active);
 }
 
@@ -1180,14 +1216,6 @@ function renderTabs(active) {
 // closing it clears the box and puts the page back.
 function openSearch() {
   if (!CONFIG.features.search) return;
-  // On Home the hero has a real search box, so use it instead of dropping
-  // the nav panel. Results show right under the hero.
-  const hero = $("hero-q");
-  if (hero && !document.body.classList.contains("search-open")) {
-    hero.focus();
-    hero.scrollIntoView({ block: "center", behavior: "smooth" });
-    return;
-  }
   document.body.classList.add("search-open");
   $("search-open").setAttribute("aria-expanded", "true");
   renderTabs(null);
@@ -1249,7 +1277,6 @@ function route() {
       : section.layout === "holidays" ? holidaysView(section)
       : sectionView(section))
     : homeView();
-  if (!section) drawHeroPixels(document.querySelector(".hero-pixels"));
   $("search").placeholder = section
     ? CONFIG.labels.sectionSearchPlaceholder(section.title)
     : CONFIG.labels.searchPlaceholder;
@@ -1314,13 +1341,15 @@ function boot() {
   document.addEventListener("click", (e) => {
     const x = e.target.closest(".hn-x");
     if (!x) return;
-    const note = x.closest(".hero-note");
-    try { localStorage.setItem(KEY, note.dataset.id); } catch { /* fine */ }
+    const note = x.closest("[data-ann-id]");
+    try { localStorage.setItem(KEY, note.dataset.annId); } catch { /* fine */ }
     note.remove();
   });
 
   const c = CONTENT.contact;
   $("contact").innerHTML = `${esc(c.prompt)} <a href="mailto:${esc(c.email)}">${esc(c.name)}</a>`;
+  if ($("side-help")) $("side-help").innerHTML = `<b>${esc(c.prompt)}</b><a href="mailto:${esc(c.email)}">${esc(CONFIG.labels.tellName(c.name))}</a>`;
+  renderSideQuick();
   $("health").textContent = healthHTML();
   if (!CONFIG.features.search) $("search-open").hidden = true;
 
@@ -1433,21 +1462,6 @@ $("search").addEventListener("input", () => { $("clear").hidden = !$("search").v
 $("clear").addEventListener("click", () => { $("search").value = ""; $("clear").hidden = true; route(); $("search").focus(); });
 $("search-open").addEventListener("click", () =>
   document.body.classList.contains("search-open") ? closeSearch() : openSearch());
-// The hero search box on Home. Results render under the hero and the rest
-// of Home steps aside until the box is cleared.
-function heroSearch(value) {
-  const q = value.trim().toLowerCase();
-  $("view").classList.toggle("hero-searching", !!q);
-  $("hero-results").innerHTML = q ? searchView(q) : "";
-}
-document.addEventListener("input", (e) => {
-  if (e.target.id === "hero-q") heroSearch(e.target.value);
-});
-document.addEventListener("keydown", (e) => {
-  if (e.target.id === "hero-q" && e.key === "Escape") {
-    e.target.value = ""; heroSearch(""); e.target.blur();
-  }
-});
 // Anything marked data-open-search (the Search tab) opens it.
 document.addEventListener("click", (e) => {
   if (e.target.closest("[data-open-search]")) { e.preventDefault(); openSearch(); }

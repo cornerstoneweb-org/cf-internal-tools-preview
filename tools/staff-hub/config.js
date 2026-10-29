@@ -63,6 +63,16 @@ export const CONFIG = {
     annUrgent: "Important",
     annHide: "Hide this",
     annMore: "Details",
+    annWhen: "When",
+    annWhere: "Where",
+    weekHeading: "This week",
+    weekToday: "Today",
+    weekEvent: "Event",
+    weekPayday: "Payday",
+    weekClosed: "offices closed",
+    startRequest: "Start a request",
+    startShort: "Start",
+    tellName: (n) => `Tell ${n}`,
 
     // Corner badge on the preview site (PREVIEW_HOSTS in site.config.js)
     previewBadge: "Preview",
