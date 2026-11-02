@@ -126,10 +126,12 @@ export const CONTENT = {
   //           e.g. "Open Enrollment meeting", "Wed, Oct 28, 10 AM". Optional;
   //           without a title the card shows the full text.
   //   date:   "YYYY-MM-DD", marks the day in Home's "This week". Optional.
+  //   dayLabel: short label under that day, e.g. "Open Enrollment due".
   announcement: {
     level: "info",
     label: "Open Enrollment",
-    title: "Open Enrollment closes Friday",
+    title: "Open Enrollment is open",
+    dayLabel: "Open Enrollment due",
     when: "Due Friday, Nov 6",
     where: "Online in Employee Navigator, our new benefits provider",
     text: "Open Enrollment is open now in Employee Navigator, our new benefits provider. Log in, review your benefits, choose a plan or decline it, then sign to finish. Your elections only count once you sign. Due Friday, Nov 6. Questions? Contact HR.",

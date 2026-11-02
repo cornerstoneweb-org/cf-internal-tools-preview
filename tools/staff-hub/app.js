@@ -306,7 +306,7 @@ function homeView() {
   // "Dashboard" look (Oct 29): the greeting and date, then cards. Search
   // lives in the top bar on every page.
   const head = CONFIG.features.greeting
-    ? `<div class="dhead">
+    ? `${noticeCardHTML()}<div class="dhead">
          <div><h1>${esc(withName(greetingText()))}<span>${esc(L.heroWelcome)}</span></h1>
            <p>${esc(L.heroLine)}</p></div>
          <span class="ddate">${ICONS.clock}${esc(DATE_FMT.format(new Date()))}</span>
@@ -316,8 +316,7 @@ function homeView() {
          <p class="welcome-lede">${esc(L.welcomeLede)}</p>
          ${(L.welcomeBody ?? []).map((para) => `<p>${esc(para)}</p>`).join("")}
        </div>`;
-  const notice = noticeCardHTML();
-  const top = `<div class="drow${notice ? "" : " is-single"}">${notice}${weekCardHTML()}</div>`;
+  const top = `<div class="drow is-single">${weekCardHTML()}</div>`;
 
   const blockHead = (title, subText) => `<div class="sec-head"><h2>${esc(title)}</h2>${subText ? `<p>${esc(subText)}</p>` : ""}</div>`;
 
@@ -1107,7 +1106,7 @@ function activeAnnouncement() {
   return { a, id, level, tag };
 }
 
-// Info notices live in a card on Home (noticeCardHTML). The banner across the
+// Info notices live in an alert above the greeting (noticeCardHTML). The banner across the
 // top is for urgent ones, or for any notice when the hero is off.
 function announcementHTML() {
   const n = activeAnnouncement();
@@ -1121,23 +1120,22 @@ function announcementHTML() {
     </div>`;
 }
 
-// The Heads up card on Home: the event's short name, when and where, and
-// a Details toggle for the full notice. Hide dismisses it for this person.
+// The Heads up alert on Home: an orange pill above the greeting with the
+// short title and due date. Tap it for the full notice, the link and Hide.
+// Hide dismisses it for this person.
 function noticeCardHTML() {
   const n = activeAnnouncement();
   if (!n || n.level !== "info") return "";
   const L = CONFIG.labels;
-  const cta = n.a.link ? `<a class="btn btn-small" href="${esc(n.a.link)}">${esc(n.a.linkLabel ?? L.annMore)}</a>` : "";
-  return `<section class="dcard dnote" data-ann-id="${esc(n.id)}" aria-labelledby="dnote-h">
-      <h2 id="dnote-h"><span class="ddot" aria-hidden="true"></span>${esc(n.tag)}</h2>
-      <p class="dnote-t">${esc(n.a.title ?? n.a.text)}</p>
-      ${n.a.when || n.a.where ? `<dl>
-        ${n.a.when ? `<div><dt>${esc(L.annWhen)}</dt><dd>${esc(n.a.when)}</dd></div>` : ""}
-        ${n.a.where ? `<div><dt>${esc(L.annWhere)}</dt><dd>${esc(n.a.where)}</dd></div>` : ""}
-      </dl>` : ""}
-      <details class="dnote-more"><summary>${esc(L.annMore)}</summary><p>${esc(n.a.text)}</p></details>
-      <div class="dnote-act">${cta}<button type="button" class="btn btn-ghost btn-small hn-x">${esc(L.annHide)}</button></div>
-    </section>`;
+  const cta = n.a.link ? `<a class="btn btn-small" href="${esc(n.a.link)}"${isInternal(n.a.link) ? "" : ' target="_blank" rel="noopener"'}>${esc(n.a.linkLabel ?? L.annMore)}</a>` : "";
+  const short = n.a.title ? `${n.a.title}${n.a.when ? ` · ${n.a.when}` : ""}` : n.a.text;
+  return `<details class="dalert" data-ann-id="${esc(n.id)}">
+      <summary><span class="dalert-ic" aria-hidden="true">${ICON_ANN}</span><span class="dalert-t">${esc(short)}</span><span class="dalert-more">${esc(L.annMore)}</span></summary>
+      <div class="dalert-panel">
+        <p>${esc(n.a.text)}</p>
+        <div class="dnote-act">${cta}<button type="button" class="btn btn-ghost btn-small hn-x">${esc(L.annHide)}</button></div>
+      </div>
+    </details>`;
 }
 
 // This week, Monday to Sunday: today ringed, and the notice's date, paydays
@@ -1148,7 +1146,7 @@ function weekCardHTML() {
   const ev = new Map();
   const add = (date, label, kind) => { if (!ev.has(date)) ev.set(date, { label, kind }); };
   const n = activeAnnouncement();
-  if (n?.a.date) add(n.a.date, n.a.title ?? n.tag, "notice");
+  if (n?.a.date) add(n.a.date, n.a.dayLabel ?? n.a.title ?? n.tag, "notice");
   for (const [d, name] of CONTENT.holidays ?? []) add(d, `${name} (${L.weekClosed})`, "holiday");
   for (const [d] of CONTENT.payDates ?? []) add(d, L.weekPayday, "payday");
   const now = new Date();
