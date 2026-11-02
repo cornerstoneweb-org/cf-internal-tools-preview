@@ -863,3 +863,9 @@ a.dsec:hover { box-shadow: 0 0 0 2px var(--teal-d); }
   .hv-row { display: grid; grid-template-columns: 1fr 1fr; margin: 0; padding: 0; overflow: visible; }
   .hv-row li:last-child { grid-column: 1 / -1; }
 }
+
+/* Outside links in "Your tools" get a small arrow so leaving the hub is
+   never a surprise (Oct 29). */
+.app { position: relative; }
+.app-out { position: absolute; top: 10px; right: 10px; width: 16px; height: 16px; color: var(--faint); }
+.app-out svg { width: 16px; height: 16px; }

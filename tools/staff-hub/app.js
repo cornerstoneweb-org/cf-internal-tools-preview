@@ -47,6 +47,8 @@ const ICONS = {
   home:     svg('<path d="M4 10.5 12 4l8 6.5V20h-5.5v-5.5h-5V20H4z"/>'),
   search:   svg('<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>'),
   chevron:  svg('<path d="m9 6 6 6-6 6"/>'),
+  heart:    svg('<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>'),
+  out:      svg('<path d="M8 16 16 8M9.5 8H16v6.5"/>'),
   brush:    svg('<path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="m14 6 3 3"/>'),
   globe:    svg('<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.5 3.6 5.3 3.6 8.5s-1.2 6-3.6 8.5c-2.4-2.5-3.6-5.3-3.6-8.5s1.2-6 3.6-8.5z"/>'),
   laptop:   svg('<rect x="4.5" y="5" width="15" height="10" rx="1.5"/><path d="M2.5 18.5h19"/>'),
@@ -179,23 +181,16 @@ function myQuickItems() {
   const byKey = new Map(cat.map((x) => [x.key, x]));
   return myQuick.map((k) => byKey.get(k)).filter(Boolean);
 }
-// The sidebar's "Every day" list mirrors the person's quick links.
-function renderSideQuick() {
-  const ul = $("side-quick");
-  if (!ul) return;
-  ul.innerHTML = myQuickItems().map((a) => {
-    const out = isInternal(a.url) ? "" : ' target="_blank" rel="noopener"';
-    return `<li><a href="${esc(a.url)}"${out}>${ICONS[a.icon] ?? ICONS.doc}<span>${esc(a.label)}</span></a></li>`;
-  }).join("");
-}
 function appsHTML() {
   const items = myQuickItems();
   if (!items.length) return `<p class="empty-soft">${esc(CONFIG.labels.quickEmpty)}</p>`;
   return items.map((a) => {
     const out = isInternal(a.url) ? "" : ' target="_blank" rel="noopener"';
-    return `<a class="app" href="${esc(a.url)}"${out}>
+    const ext = !isInternal(a.url);
+    return `<a class="app${ext ? " is-ext" : ""}" href="${esc(a.url)}"${out}${ext ? ` aria-label="${esc(`${a.label}, ${CONFIG.labels.opensNewTab}`)}"` : ""}>
       <span class="app-ic" aria-hidden="true">${ICONS[a.icon] ?? ICONS.doc}</span>
       <b>${esc(a.label)}</b><span class="app-note">${esc(a.note ?? "")}</span>
+      ${ext ? `<span class="app-out" aria-hidden="true">${ICONS.out}</span>` : ""}
     </a>`;
   }).join("");
 }
@@ -417,10 +412,11 @@ function homeView() {
     panels = `<div class="cols">${tools}${attention}</div>`;
   }
 
-  // Order: greeting, this week, requests, quick links, sections, values.
-  const reqTable = browse.slice(0, browse.indexOf('<div class="dgrid">'));
-  const secGrid = browse.slice(reqTable.length);
-  return `${head}${top}${reqTable}${quick}${secGrid}${values}${tiles}${panels}`;
+  // Order: greeting, this week, then the person's links. Requests, the
+  // sections and the staff values live in the sidebar (Ryan, Oct 29), so
+  // the request table and section cards above are built but not shown.
+  void browse;
+  return `${head}${top}${quick}${values}${tiles}${panels}`;
 }
 
 function sectionView(section) {
@@ -998,7 +994,7 @@ function wireQuickEdit() {
         </div>
       </div>`;
   }
-  const refresh = () => { const a = $("apps"); if (a) a.innerHTML = appsHTML(); renderSideQuick(); };
+  const refresh = () => { const a = $("apps"); if (a) a.innerHTML = appsHTML(); };
 
   $("view").addEventListener("click", (e) => {
     if (!e.target.closest("[data-quick-edit]")) return;
@@ -1349,7 +1345,6 @@ function boot() {
   const c = CONTENT.contact;
   $("contact").innerHTML = `${esc(c.prompt)} <a href="mailto:${esc(c.email)}">${esc(c.name)}</a>`;
   if ($("side-help")) $("side-help").innerHTML = `<b>${esc(c.prompt)}</b><a href="mailto:${esc(c.email)}">${esc(CONFIG.labels.tellName(c.name))}</a>`;
-  renderSideQuick();
   $("health").textContent = healthHTML();
   if (!CONFIG.features.search) $("search-open").hidden = true;
 

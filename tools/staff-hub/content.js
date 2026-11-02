@@ -128,15 +128,17 @@ export const CONTENT = {
   //   date:   "YYYY-MM-DD", marks the day in Home's "This week". Optional.
   announcement: {
     level: "info",
-    title: "Open Enrollment meeting",
-    when: "Wed, Oct 28, 10 AM",
-    where: "Livermore campus, 4/5 Grade Room",
-    date: "2026-10-28",
-    text: "Employee Benefits Open Enrollment meeting: Wed, Oct 28, 10 AM, Livermore campus, 4/5 Grade Room.",
-    link: null,
-    linkLabel: null,
-    until: "2026-10-28",
+    label: "Open Enrollment",
+    title: "Open Enrollment closes Friday",
+    when: "Due Friday, Nov 6",
+    where: "Online in Employee Navigator, our new benefits provider",
+    text: "Open Enrollment is open now in Employee Navigator, our new benefits provider. Log in, review your benefits, choose a plan or decline it, then sign to finish. Your elections only count once you sign. Due Friday, Nov 6. Questions? Contact HR.",
+    link: "../../shared/assets/docs/hr/Employee-Navigator-Enrollment-Guide.pdf",
+    linkLabel: "Enrollment guide (PDF)",
+    date: "2026-11-06",
+    until: "2026-11-06",
   },
+
 
   sections: [
     {
@@ -267,6 +269,18 @@ export const CONTENT = {
       layout: "compact",
       reviewEvery: 6,
       cards: [
+        {
+          title: "Open Enrollment",
+          body: "Choose your benefits in Employee Navigator, our new benefits provider. Due Friday, Nov 6. Your elections only count once you sign at the end.",
+          owner: "Bou",
+          reviewed: "2026-11-02",
+          reviewEvery: 12,
+          links: [
+            { label: "Log in to Employee Navigator", url: "https://www.employeenavigator.com/benefits/Account/Login" },
+            { label: "Enrollment guide (8 steps, PDF)", url: "../../shared/assets/docs/hr/Employee-Navigator-Enrollment-Guide.pdf", download: true },
+          ],
+          search: "open enrollment benefits insurance medical dental vision employee navigator",
+        },
         {
           title: "Staff Roster",
           body: "Who does what around here. Chat, call or email anyone on staff.",
@@ -441,15 +455,13 @@ export const CONTENT = {
     },
 
     {
-      id: "values",
+      id: "values", icon: "heart",
       accent: "var(--sec-values)",
       title: "Our Staff Values",
       blurb: "The five we hold each other to.",
       enabled: true,
-      // placement: "home" means this section has no page and no nav entry.
-      // It renders on Home under the welcome. Cards stay searchable and the
-      // admin view still tracks them. Delete this line to give it a page back.
-      placement: "home",
+      // Its own page since Oct 29 (Ryan): off Home, listed under General.
+      // Add placement: "home" back to show it on Home with no page.
       layout: "values",
       reviewEvery: 24,
       cards: [
