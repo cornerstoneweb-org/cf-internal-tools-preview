@@ -4,31 +4,31 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- version:start (written by scripts/stamp-version.mjs, do not edit) -->
-  <meta name="app-version" content="20261102192144">
+  <meta name="app-version" content="20261102192805">
   <script type="importmap">{
     "imports": {
-      "../../config/site.config.js": "../../config/site.config.js?v=20261102192144",
-      "../../config/supabase.config.js": "../../config/supabase.config.js?v=20261102192144",
-      "../../mockups/mockups.js": "../../mockups/mockups.js?v=20261102192144",
-      "../../shared/js/auth.js": "../../shared/js/auth.js?v=20261102192144",
-      "../../shared/js/data.js": "../../shared/js/data.js?v=20261102192144",
-      "../../shared/js/home.js": "../../shared/js/home.js?v=20261102192144",
-      "../../shared/js/supabase.js": "../../shared/js/supabase.js?v=20261102192144",
-      "../../shared/js/ui.js": "../../shared/js/ui.js?v=20261102192144",
-      "../../shared/js/version-check.js": "../../shared/js/version-check.js?v=20261102192144",
-      "../../shared/vendor/supabase-js-2.117.3.js": "../../shared/vendor/supabase-js-2.117.3.js?v=20261102192144",
-      "../comms/app.js": "../comms/app.js?v=20261102192144",
-      "../comms/config.js": "../comms/config.js?v=20261102192144",
-      "../facilities/app.js": "../facilities/app.js?v=20261102192144",
-      "../facilities/config.js": "../facilities/config.js?v=20261102192144",
-      "../facilities/demo-data.js": "../facilities/demo-data.js?v=20261102192144",
-      "../facilities/facilities.js": "../facilities/facilities.js?v=20261102192144",
-      "../it/app.js": "../it/app.js?v=20261102192144",
-      "../it/config.js": "../it/config.js?v=20261102192144",
-      "./app.js": "./app.js?v=20261102192144",
-      "./brand-library.js": "./brand-library.js?v=20261102192144",
-      "./config.js": "./config.js?v=20261102192144",
-      "./content.js": "./content.js?v=20261102192144"
+      "../../config/site.config.js": "../../config/site.config.js?v=20261102192805",
+      "../../config/supabase.config.js": "../../config/supabase.config.js?v=20261102192805",
+      "../../mockups/mockups.js": "../../mockups/mockups.js?v=20261102192805",
+      "../../shared/js/auth.js": "../../shared/js/auth.js?v=20261102192805",
+      "../../shared/js/data.js": "../../shared/js/data.js?v=20261102192805",
+      "../../shared/js/home.js": "../../shared/js/home.js?v=20261102192805",
+      "../../shared/js/supabase.js": "../../shared/js/supabase.js?v=20261102192805",
+      "../../shared/js/ui.js": "../../shared/js/ui.js?v=20261102192805",
+      "../../shared/js/version-check.js": "../../shared/js/version-check.js?v=20261102192805",
+      "../../shared/vendor/supabase-js-2.117.3.js": "../../shared/vendor/supabase-js-2.117.3.js?v=20261102192805",
+      "../comms/app.js": "../comms/app.js?v=20261102192805",
+      "../comms/config.js": "../comms/config.js?v=20261102192805",
+      "../facilities/app.js": "../facilities/app.js?v=20261102192805",
+      "../facilities/config.js": "../facilities/config.js?v=20261102192805",
+      "../facilities/demo-data.js": "../facilities/demo-data.js?v=20261102192805",
+      "../facilities/facilities.js": "../facilities/facilities.js?v=20261102192805",
+      "../it/app.js": "../it/app.js?v=20261102192805",
+      "../it/config.js": "../it/config.js?v=20261102192805",
+      "./app.js": "./app.js?v=20261102192805",
+      "./brand-library.js": "./brand-library.js?v=20261102192805",
+      "./config.js": "./config.js?v=20261102192805",
+      "./content.js": "./content.js?v=20261102192805"
     }
   }</script>
   <!-- version:end -->
@@ -52,10 +52,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap">
-  <link rel="stylesheet" href="../../shared/css/tokens.css?v=20261102192144">
-  <link rel="stylesheet" href="../../shared/css/base.css?v=20261102192144">
-  <link rel="stylesheet" href="styles.css?v=20261102192144">
-  <link rel="stylesheet" href="../facilities/styles.css?v=20261102192144">
+  <link rel="stylesheet" href="../../shared/css/tokens.css?v=20261102192805">
+  <link rel="stylesheet" href="../../shared/css/base.css?v=20261102192805">
+  <link rel="stylesheet" href="styles.css?v=20261102192805">
+  <link rel="stylesheet" href="../facilities/styles.css?v=20261102192805">
 </head>
 <body class="is-locked">
   <!-- Sign-in screen. Shown until a CF staff session exists. This is the
@@ -77,7 +77,11 @@
 
   <!-- Desktop sidebar ("Dashboard" look, Oct 29). Hidden on smaller
        screens, where the top nav and the phone tab bar take over. -->
-  <aside class="side" id="side" aria-label="Sidebar">
+  <div class="side-backdrop" id="side-backdrop" hidden></div>
+  <aside class="side" id="side" aria-label="Menu">
+    <button type="button" class="icon-btn side-close" id="menu-close" aria-label="Close menu">
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 5l10 10M15 5 5 15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+    </button>
     <a class="side-brand" href="#/home"><img src="../../shared/assets/brand/cf-logo-horizontal-black.png"
       alt="Cornerstone Fellowship" width="210" height="41"></a>
     <p class="side-group" id="side-nav-label">General</p>
@@ -87,6 +91,9 @@
 
   <header class="gnav" id="gnav">
     <div class="gnav-in">
+      <button type="button" class="icon-btn menu-btn" id="menu-open" aria-label="Open menu" aria-expanded="false" aria-controls="side">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 5.5h14M3 10h14M3 14.5h14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+      </button>
       <a class="gnav-brand" href="#/home"><img src="../../shared/assets/brand/cf-logo-horizontal-black.png"
         alt="Cornerstone Fellowship" width="210" height="41"></a>
       <nav class="gnav-links" id="nav" aria-label="Sections"></nav>
@@ -136,10 +143,9 @@
     </footer>
   </div>
 
-  <!-- Phone only: section tabs along the bottom, iOS style. Built from
-       CONFIG.tabs in app.js. -->
-  <nav class="tabbar" id="tabbar" aria-label="Sections"></nav>
+  <!-- The phone tab bar was retired Nov 2 for the menu button (Ryan).
+       renderTabs() still fills it if this nav is ever put back. -->
 
-  <script type="module" src="app.js?v=20261102192144"></script>
+  <script type="module" src="app.js?v=20261102192805"></script>
 </body>
 </html>

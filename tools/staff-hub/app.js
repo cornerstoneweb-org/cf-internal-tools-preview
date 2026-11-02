@@ -1205,6 +1205,27 @@ function renderTabs(active) {
   }).join("");
 }
 
+/* ================= menu (phones and tablets) ================= */
+// Below desktop width the sidebar slides in from the left as a menu.
+function openSideMenu() {
+  document.body.classList.add("menu-open");
+  $("side-backdrop").hidden = false;
+  $("menu-open").setAttribute("aria-expanded", "true");
+  $("side").querySelector(".side-nav a")?.focus();
+}
+function closeSideMenu(focusButton = false) {
+  if (!document.body.classList.contains("menu-open")) return;
+  document.body.classList.remove("menu-open");
+  $("side-backdrop").hidden = true;
+  $("menu-open").setAttribute("aria-expanded", "false");
+  if (focusButton) $("menu-open").focus();
+}
+$("menu-open").addEventListener("click", openSideMenu);
+$("menu-close").addEventListener("click", () => closeSideMenu(true));
+$("side-backdrop").addEventListener("click", () => closeSideMenu(true));
+$("side").addEventListener("click", (e) => { if (e.target.closest("a")) closeSideMenu(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeSideMenu(true); });
+
 /* ================= search panel ================= */
 // Search drops out of the nav bar like Spotlight. Opening it focuses the box;
 // closing it clears the box and puts the page back.
