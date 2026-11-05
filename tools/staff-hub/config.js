@@ -110,6 +110,18 @@ export const CONFIG = {
     signedInAs: "Signed in as",
     signOut: "Sign out",
 
+    // "View as" (admins only, see the view-as section in app.js)
+    viewAs: "View as someone else",
+    viewAsExit: "Back to my view",
+    viewAsTitle: "View the hub as",
+    viewAsHelp: "This only changes what you see in this tab. You stay signed in as you, and nothing is saved as them.",
+    viewAsSearch: "Search by name or role",
+    viewAsNone: "No one matches that.",
+    viewAsCancel: "Cancel",
+    viewAsBar: (name) => `Viewing as ${name}`,
+    viewAsBarNote: (you) => `You're still signed in as ${you}.`,
+    viewAsNoSave: "You can't save changes while viewing as someone else.",
+
     searchPlaceholder: "Search the hub, or ask where something lives",
     sectionSearchPlaceholder: (name) => `Search ${name.toLowerCase()}`,
     noResults: "Nothing matches that.",

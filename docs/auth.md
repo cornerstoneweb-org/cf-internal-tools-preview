@@ -15,6 +15,15 @@
   without Microsoft, and CF staff: only the last gets rows.
 - `shared/js/auth.js` decides what to SHOW. RLS is the lock.
 
+**View as (Staff Hub, admins only).** The avatar menu offers "View as someone
+else" when `public.my_roles()` returns `admin`. It only changes what that one
+tab shows (name, initials, greeting), and it keeps the admin's own session, so
+RLS is unchanged and it can't reach anything new. The choice lives in
+`sessionStorage` and ends with the tab. Staff without the role can't turn it on.
+Anything per-person added later is not covered by this: to show an admin
+someone else's private rows, add an admin check in RLS or a server-side
+function, and test it like any other policy.
+
 Local preview cannot sign in (localhost is not on the redirect allow list).
 Add `http://localhost:<port>/**` in Supabase URL Configuration if needed.
 

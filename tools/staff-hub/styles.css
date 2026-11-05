@@ -967,3 +967,42 @@ a.dsec:hover { box-shadow: 0 0 0 2px var(--teal-d); }
 .page-head.has-accent .page-sub { color: var(--slate); }
 .card::before { content: none; }
 @media (max-width: 720px) { .page-head.has-accent { padding: 18px; } }
+
+/* ---------- View as (admins only) ---------- */
+/* Fixed so it stays in sight on every page and at every scroll. */
+.va-bar {
+  position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 900;
+  display: flex; align-items: center; gap: 16px; width: max-content; max-width: calc(100vw - 24px);
+  padding: 8px 8px 8px 18px; border-radius: 999px; background: var(--orange); color: var(--ink);
+  box-shadow: 0 2px 4px rgba(182,91,13,.18), 0 12px 28px rgba(254,135,48,.28);
+}
+.va-bar[hidden] { display: none; }
+.va-bar-text { min-width: 0; font-size: .9rem; line-height: 1.25; }
+.va-bar-text b { font-weight: 700; }
+.va-bar-text span { display: block; font-size: .78rem; }
+.va-bar-exit {
+  flex: none; padding: 8px 14px; border: 0; border-radius: 999px; background: var(--jungle); color: #fff;
+  font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer;
+}
+.va-bar-exit:hover { filter: brightness(1.25); }
+body.is-viewing-as .avatar { box-shadow: 0 0 0 3px var(--orange); }
+body.is-viewing-as .main { padding-bottom: 76px; }
+@media (max-width: 620px) { body.is-viewing-as .preview-badge { bottom: 92px; } }
+
+.va-title { margin: 0; font-size: 1.25rem; font-weight: 700; color: var(--ink); }
+.va-help { margin: 6px 0 14px; font-size: .88rem; line-height: 1.4; color: var(--faint); }
+.va-search {
+  width: 100%; box-sizing: border-box; padding: 10px 14px; border: 1px solid #DDE5EA; border-radius: 12px;
+  background: #fff; font: inherit; font-size: 1rem; color: var(--ink);
+}
+.va-list { margin-top: 10px; height: min(46dvh, 380px); overflow-y: auto; }
+.va-person {
+  display: block; width: 100%; padding: 9px 10px; border: 0; border-radius: 10px; background: none;
+  text-align: left; font: inherit; color: var(--ink); cursor: pointer;
+}
+.va-person:hover, .va-person:focus-visible { background: var(--orange-wash); }
+.va-person b { display: block; font-weight: 600; font-size: .95rem; }
+.va-person span { display: block; font-size: .8rem; color: var(--faint); }
+.va-none { margin: 16px 10px; color: var(--faint); font-size: .9rem; }
+.va-foot { margin-top: 12px; text-align: right; }
+.va { border-radius: 24px; overflow: hidden; }

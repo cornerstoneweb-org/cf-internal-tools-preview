@@ -64,6 +64,16 @@ export async function signOut() {
   location.replace(location.pathname);
 }
 
+// The caller's own roles, from private.app_roles. The database decides this
+// from the signed token, so it can't be faked by editing the page. Any error
+// means no roles.
+export async function myRoles() {
+  const supabase = await getClient();
+  const { data, error } = await supabase.rpc("my_roles");
+  if (error) { console.warn("[auth] my_roles:", error.message); return []; }
+  return Array.isArray(data) ? data : [];
+}
+
 // Reads that go through RLS. Returns [] on any error so a page never breaks
 // because the database said no.
 export async function selectAll(table, orderBy) {

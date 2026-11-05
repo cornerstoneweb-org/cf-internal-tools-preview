@@ -2,7 +2,7 @@ import { CONFIG } from "./config.js";
 import { CONTENT } from "./content.js";
 import { CAMPUSES, TOOLS, PREVIEW_HOSTS } from "../../config/site.config.js";
 import { BRAND_LIBRARY } from "./brand-library.js";
-import { getSession, isStaff, displayName, userMeta, signIn, signOut, selectAll, saveMine, clearMine } from "../../shared/js/auth.js";
+import { getSession, isStaff, displayName, userMeta, signIn, signOut, myRoles, selectAll, saveMine, clearMine } from "../../shared/js/auth.js";
 import { watchForNewVersion } from "../../shared/js/version-check.js";
 import { toast } from "../../shared/js/ui.js";
 import { mountFacilities } from "../facilities/facilities.js";
@@ -1048,6 +1048,7 @@ function wireQuickEdit() {
       case "cancel": d.close(); return;
       case "reset":
       case "save": {
+        if (viewingAs) { toast(L.viewAsNoSave); return; }
         b.disabled = true;
         try {
           if (b.dataset.qe === "reset") { await clearMine("quick_link_prefs"); myQuick = null; }
@@ -1436,15 +1437,100 @@ function firstNameOf(session) {
 }
 
 function renderMe(session) {
-  firstName = firstNameOf(session);
-  const name = displayName(session);
+  firstName = viewingAs ? viewingAs.first_name : firstNameOf(session);
+  const name = viewingAs ? personName(viewingAs) : displayName(session);
   $("avatar").textContent = initials(name);
   $("me-name").textContent = name;
-  $("me-role").textContent = session.user.email ?? "";
+  $("me-role").textContent = viewingAs ? viewingAs.email : session.user.email ?? "";
+  // The footer always tells the truth about who is really signed in.
   $("me-line").innerHTML = `${esc(CONFIG.labels.signedInAs)} ${esc(session.user.email ?? name)} ·
     <button type="button" class="linkish" id="sign-out">${esc(CONFIG.labels.signOut)}</button>`;
-  $("sign-out").addEventListener("click", () => signOut());
-  $("menu-sign-out").onclick = () => signOut();
+  const out = () => { forgetViewAs(); signOut(); };
+  $("sign-out").addEventListener("click", out);
+  $("menu-sign-out").onclick = out;
+}
+
+/* ================= view as (admins only) =================
+   Lets an admin see the hub the way a staff member would. It changes what
+   this tab SHOWS and nothing else: the session, the database token and RLS
+   stay the admin's own, so it can never reach anything the admin couldn't
+   already reach, and it never saves anything as the other person.
+
+   The menu item appears only when the database says the signed-in person has
+   the admin role (public.my_roles). That is a real check, but it only guards
+   the menu. Anything per-person added later must be decided by RLS or a
+   server-side function, never by this mode. */
+const VIEW_AS_KEY = "cf-hub-view-as";   // sessionStorage: ends with the tab
+let viewingAs = null;                    // a staff_directory row, or null
+
+function rememberedViewAs() {
+  try { return sessionStorage.getItem(VIEW_AS_KEY); } catch { return null; }
+}
+function forgetViewAs() {
+  try { sessionStorage.removeItem(VIEW_AS_KEY); } catch { /* fine */ }
+}
+function switchViewAs(email) {
+  try {
+    if (email) sessionStorage.setItem(VIEW_AS_KEY, email);
+    else sessionStorage.removeItem(VIEW_AS_KEY);
+  } catch { toast(CONFIG.labels.viewAsNoSave); return; }
+  location.reload();
+}
+
+function renderViewAs(session, isAdmin) {
+  const L = CONFIG.labels;
+  $("menu-view-as").hidden = !isAdmin;
+  $("menu-view-as").onclick = () => { closeMenu(); openViewAsPicker(session); };
+  $("menu-view-exit").hidden = !viewingAs;
+  $("menu-view-exit").onclick = () => switchViewAs(null);
+  document.body.classList.toggle("is-viewing-as", !!viewingAs);
+  const bar = $("va-bar");
+  bar.hidden = !viewingAs;
+  if (!viewingAs) return;
+  bar.innerHTML = `<span class="va-bar-text"><b>${esc(L.viewAsBar(personName(viewingAs)))}</b>
+      <span>${esc(L.viewAsBarNote(displayName(session)))}</span></span>
+    <button type="button" class="va-bar-exit" id="va-exit">${esc(L.viewAsExit)}</button>`;
+  $("va-exit").onclick = () => switchViewAs(null);
+}
+
+function openViewAsPicker(session) {
+  const L = CONFIG.labels;
+  const me = session.user.email?.toLowerCase();
+  const people = STAFF.filter((p) => p.email.toLowerCase() !== me);
+  document.getElementById("va-picker")?.remove();
+  const d = document.createElement("dialog");
+  d.id = "va-picker";
+  d.className = "qe va";
+  d.setAttribute("aria-labelledby", "va-title");
+  d.innerHTML = `<div class="qe-card">
+    <h2 class="va-title" id="va-title">${esc(L.viewAsTitle)}</h2>
+    <p class="va-help">${esc(L.viewAsHelp)}</p>
+    <input class="va-search" id="va-search" type="search" autocomplete="off" spellcheck="false"
+      placeholder="${esc(L.viewAsSearch)}" aria-label="${esc(L.viewAsSearch)}">
+    <div class="va-list" id="va-list"></div>
+    <div class="va-foot"><button type="button" class="linkish" id="va-cancel">${esc(L.viewAsCancel)}</button></div>
+  </div>`;
+  document.body.append(d);
+  const list = d.querySelector("#va-list");
+  const draw = (q = "") => {
+    const t = q.trim().toLowerCase();
+    const hits = people.filter((p) => `${personName(p)} ${p.title ?? ""}`.toLowerCase().includes(t));
+    list.innerHTML = hits.length
+      ? hits.map((p) => `<button type="button" class="va-person" data-email="${esc(p.email)}">
+          <b>${esc(personName(p))}</b>
+          <span>${esc([p.title, campusOf(p.campus_code).label].filter(Boolean).join(" · "))}</span>
+        </button>`).join("")
+      : `<p class="va-none">${esc(L.viewAsNone)}</p>`;
+  };
+  draw();
+  d.querySelector("#va-search").addEventListener("input", (e) => draw(e.target.value));
+  d.querySelector("#va-cancel").addEventListener("click", () => d.close());
+  list.addEventListener("click", (e) => {
+    const b = e.target.closest(".va-person");
+    if (b) switchViewAs(b.dataset.email);
+  });
+  d.addEventListener("close", () => d.remove());
+  d.showModal();
 }
 
 function showGate(message, buttonLabel, action) {
@@ -1471,15 +1557,21 @@ async function start() {
     return showGate(CONFIG.labels.gateNotStaff(session.user.email ?? "That"),
       CONFIG.labels.gateNotStaffButton, () => signOut());
   }
-  const [cards, staff, handbook, quickPrefs] = await Promise.all([
+  const [cards, staff, handbook, quickPrefs, roles] = await Promise.all([
     selectAll("hub_cards", "sort_order"),
     selectAll("staff_directory", "last_name"),
     selectAll("handbook_sections", "sort_order"),
     CONFIG.features.quickActions ? selectAll("quick_link_prefs") : [],
+    myRoles(),
   ]);
   if (quickPrefs[0]) myQuick = quickPrefs[0].links ?? [];
   mergeProtectedCards(cards);
   loadStaff(staff);
+  // Only an admin can be viewing as someone. Anyone else loses the leftover.
+  const isAdmin = roles.includes("admin");
+  const wanted = rememberedViewAs()?.toLowerCase();
+  viewingAs = (isAdmin && wanted && STAFF.find((p) => p.email.toLowerCase() === wanted)) || null;
+  if (!viewingAs) forgetViewAs();
   loadHandbook(handbook);
   // Labor law notices become cards too, so the main search finds "sick leave".
   const labor = sections().find((x) => x.id === "laborlaw");
@@ -1490,6 +1582,7 @@ async function start() {
   $("signin").hidden = true;
   document.body.classList.remove("is-locked");
   renderMe(session);
+  renderViewAs(session, isAdmin);
   boot();
 }
 
