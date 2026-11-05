@@ -110,7 +110,7 @@ export const CONTENT = {
   quickActions: [
     { icon: "mail",   label: "Email",    note: "Outlook",          accent: "var(--teal)",   url: "https://outlook.office.com/" },
     { icon: "chat",   label: "Teams",    note: "Chat and calls",   accent: "var(--cyan)",   url: "https://teams.microsoft.com/v2/" },
-    { icon: "people", label: "Central",  note: "CCB",              accent: "var(--jungle)", ink: "var(--lime)", url: "https://cornerstonefellowship.ccbchurch.com/goto/login" },
+    { icon: "people", label: "Central",  note: "People database",  accent: "var(--jungle)", ink: "var(--lime)", url: "https://cornerstonefellowship.ccbchurch.com/goto/login" },
     { icon: "clock",  label: "OnePoint", note: "Pay and time off", accent: "var(--orange)", url: "https://secure.onehcm.com/ta/CFLCA.login?rnd=QSZ&NoRedirect=1" },
     { icon: "wrench", label: "Facilities", note: "Request",       accent: "var(--lime)",   ink: "var(--jungle)", url: "#/facilities" },
     { icon: "person", label: "Roster",   note: "Staff directory",  accent: "#FFFFFF",       ink: "var(--teal)",   url: "#/directory" },
@@ -196,8 +196,12 @@ export const CONTENT = {
     {
       id: "software", icon: "grid",
       accent: "var(--sec-software)",
-      title: "Software",
-      blurb: "The programs we use to get work done.",
+      title: "Apps & Tools",
+      blurb: "What we use to get work done.",
+      // "Start here" row at the top of the page: keys from quickActions, in
+      // order. A card with hideBelow: true stays out of the list under it
+      // (its only link is already in the row) but is still searchable.
+      startHere: ["email", "teams", "central", "onepoint"],
       enabled: true,
       layout: "full",
       reviewEvery: 12,
@@ -224,13 +228,14 @@ export const CONTENT = {
           ],
         },
         {
-          title: "Central (CCB)",
-          body: "Our church management system. People, groups, events, giving and volunteers in one place, so we can connect, communicate and follow up.",
+          title: "Central",
+          search: "ccb church community builder people database",   // old name, still findable
+          body: "Our people database. People, groups, events, giving and volunteers in one place, so we can connect, communicate and follow up.",
           owner: "Ryan",
           reviewed: null,
           links: [
             { label: "Log in to Central", url: "https://cornerstonefellowship.ccbchurch.com/goto/login" },
-            { label: "Help center", url: "https://support.pushpay.com/s/topics-chms", note: "hosted by CCB" },
+            { label: "Help center", url: "https://support.pushpay.com/s/topics-chms" },
             { label: "Guide documents", url: null, status: "pending" },
           ],
         },
@@ -253,7 +258,7 @@ export const CONTENT = {
           links: [{ label: "Log in to Ramp", url: "https://app.ramp.com/sign-in" }],
         },
         {
-          title: "OnePoint",
+          title: "OnePoint", hideBelow: true,
           body: "Your HR dashboard. Pay stubs, time off, benefits and personal information.",
           owner: "Bou",
           reviewed: null,

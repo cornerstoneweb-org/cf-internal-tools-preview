@@ -910,5 +910,60 @@ a.dsec:hover { box-shadow: 0 0 0 2px var(--teal-d); }
   .side-close { display: grid; position: absolute; top: 12px; right: 10px; }
 }
 @media (max-width: 720px) {
+  :root { --nav-h: 58px; }
   .gnav-in { gap: 8px; }
+  .gnav-brand img { height: 25px; }
+  .gnav .icon-btn { width: 42px; height: 42px; }
+  .gnav .icon-btn svg { width: 22px; height: 22px; }
+  .avatar { width: 38px; height: 38px; font-size: 13.5px; }
 }
+
+/* Keep "This week" inside its card on narrow phones. */
+.drow { grid-template-columns: minmax(0, 1fr); }
+.dweek ol { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+@media (max-width: 720px) {
+  .dweek li span { width: min(38px, 100%); height: auto; aspect-ratio: 1; }
+}
+
+/* "Start here" row on Apps & Tools (Nov 5). */
+.start-here .block-head { margin-top: 0; }
+.start-here .apps { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+.start-here .app { background: #fff; padding: 16px; }
+.start-here .app:hover { background: var(--teal-wash); }
+.start-here .app b { font-size: 1.05rem; }
+@media (max-width: 720px) { .start-here .apps { grid-template-columns: 1fr 1fr; } }
+
+/* Staff value of the week on Home (Nov 5). */
+.dvalue { display: flex; align-items: center; gap: 14px; text-decoration: none; color: inherit; transition: box-shadow .2s var(--ease); }
+.dvalue:hover { box-shadow: 0 0 0 2px var(--teal-d); }
+.dvalue .dic { --sec: var(--v); }
+.dvalue-t { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.dvalue-t small { font-size: .8rem; font-weight: 600; color: var(--faint); }
+.dvalue-t b { font-size: 1.15rem; font-weight: 700; letter-spacing: -.01em; }
+.dvalue-t span { color: var(--slate); font-size: .95rem; }
+.dvalue-t em { font-style: normal; font-size: .84rem; color: var(--faint); }
+.dvalue > svg { width: 18px; height: 18px; flex: none; color: var(--faint); }
+
+/* Long day labels stay centered under their circle on phones. */
+.dweek li { min-width: 0; grid-template-columns: minmax(0, 1fr); }
+.dweek li > * { justify-self: center; }
+@media (max-width: 720px) { .dweek li em { width: 62px; } }
+
+/* ---------- Page color (Nov 5) ----------
+   The menu highlight takes the page's own color, and pages open with a soft
+   tint and a short thick underline in that color instead of the dots. Dark
+   text works on every accent except deep teal, which takes white. */
+.side-nav a.is-active { background: var(--sec, var(--teal-d)); color: var(--ink); }
+.side-nav a.is-active[href="#/home"], .side-nav a.is-active[href="#/values"] { color: #fff; }
+.page-head.has-accent {
+  margin: 0 0 var(--space-4); padding: 22px 24px; border-radius: 18px;
+  background: color-mix(in srgb, var(--sec, var(--teal)) 14%, white);
+}
+.page-head.has-accent .page-title::before { content: none; }
+.page-head.has-accent .page-title::after {
+  content: ""; display: block; width: 56px; height: 6px; margin-top: 12px; border-radius: 3px;
+  background: var(--sec, var(--teal));
+}
+.page-head.has-accent .page-sub { color: var(--slate); }
+.card::before { content: none; }
+@media (max-width: 720px) { .page-head.has-accent { padding: 18px; } }

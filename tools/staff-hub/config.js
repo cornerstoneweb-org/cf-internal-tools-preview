@@ -13,7 +13,10 @@ export const CONFIG = {
                           // staff the wrong story. It lives on /admin now.
     announcement: true,   // the banner
     healthLine: false,    // "n items need checking" in the footer. Same reason.
-    quickActions: true,   // the app-icon row on Home
+    quickActions: false,  // "Your tools" on Home and its Edit screen. Off
+                          // Nov 5 (Ryan): the top apps moved to "Start here"
+                          // on Apps & Tools. quick_link_prefs stays in the
+                          // database, unused, in case this comes back.
     browse: true,         // the tile grid of sections on Home. Back on with
                           // the top nav (2026-09-23): the nav is a thin row of
                           // words, the tiles say what each section is for.
@@ -144,6 +147,9 @@ export const CONFIG = {
       "Hey there, {name}",
       "Good to see you, {name}",
     ],
+    startHere: "Start here",
+    valueOfWeek: "Staff value of the week",
+    moreTools: "Everything else",
     quickHeading: "Your tools",
     quickSub: "The apps and pages you use most. Outside apps open in a new tab.",
     opensNewTab: "opens in a new tab",

@@ -184,6 +184,9 @@ function myQuickItems() {
 function appsHTML() {
   const items = myQuickItems();
   if (!items.length) return `<p class="empty-soft">${esc(CONFIG.labels.quickEmpty)}</p>`;
+  return tilesHTML(items);
+}
+function tilesHTML(items) {
   return items.map((a) => {
     const out = isInternal(a.url) ? "" : ' target="_blank" rel="noopener"';
     const ext = !isInternal(a.url);
@@ -317,6 +320,14 @@ function homeView() {
          ${(L.welcomeBody ?? []).map((para) => `<p>${esc(para)}</p>`).join("")}
        </div>`;
   const top = `<div class="drow is-single">${weekCardHTML()}</div>`;
+  // The "Start here" row from Apps & Tools, then one staff value a week.
+  const startKeys = sections().find((x) => x.startHere)?.startHere ?? [];
+  const catalog = quickCatalog();
+  const startItems = startKeys.map((k) => catalog.find((x) => x.key === k)).filter(Boolean);
+  const start = startItems.length
+    ? `<section class="dcard" aria-labelledby="dstart-h"><div class="dcard-h"><h2 id="dstart-h">${esc(L.startHere)}</h2>
+         <a class="dlink" href="#/software">${esc(L.seeAll)} ${ICONS.chevron}</a></div>
+         <div class="apps">${tilesHTML(startItems)}</div></section>` : "";
 
   const blockHead = (title, subText) => `<div class="sec-head"><h2>${esc(title)}</h2>${subText ? `<p>${esc(subText)}</p>` : ""}</div>`;
 
@@ -415,16 +426,42 @@ function homeView() {
   // sections and the staff values live in the sidebar (Ryan, Oct 29), so
   // the request table and section cards above are built but not shown.
   void browse;
-  return `${head}${top}${quick}${values}${tiles}${panels}`;
+  return `${head}${top}${start}${valueOfWeekHTML()}${quick}${values}${tiles}${panels}`;
+}
+
+// One staff value a week, in order, changing every Monday on its own.
+function valueOfWeekHTML() {
+  const s = sections().find((x) => x.id === "values" && x.enabled);
+  if (!s?.cards.length) return "";
+  const monday = Date.UTC(2024, 0, 1);   // any Monday works as the starting point
+  const weeks = Math.floor((Date.now() - monday) / (7 * DAY));
+  const v = s.cards[weeks % s.cards.length];
+  return `<a class="dcard dvalue" href="#/${esc(s.id)}" style="--v:${esc(v.accent ?? "var(--teal)")}">
+      <span class="dic" aria-hidden="true">${VALUE_ICONS[v.icon] ?? ""}</span>
+      <span class="dvalue-t"><small>${esc(CONFIG.labels.valueOfWeek)}</small>
+        <b>${esc(v.title)}</b><span>${esc(v.short ?? "")}</span>
+        ${v.meta ? `<em>${esc(v.meta)}</em>` : ""}</span>
+      ${ICONS.chevron}</a>`;
 }
 
 function sectionView(section) {
   const empty = !section.enabled || section.cards.length === 0;
+  const L = CONFIG.labels;
+  // A section can open with a "Start here" row of its top links, with the
+  // rest of its cards under a heading.
+  const items = quickCatalog();
+  const top = (section.startHere ?? []).map((k) => items.find((x) => x.key === k)).filter(Boolean);
+  const body = top.length
+    ? `<section class="start-here" aria-labelledby="start-h"><h2 class="block-head" id="start-h">${esc(L.startHere)}</h2>
+        <div class="apps">${tilesHTML(top)}</div></section>
+       <h2 class="block-head">${esc(L.moreTools)}</h2>
+       ${cardsHTML(section, section.cards.filter((c) => !c.hideBelow))}`
+    : cardsHTML(section);
   return `<div class="page-head has-accent" style="--sec:${ac(section)}">
       <div><h1 class="page-title">${esc(section.title)}</h1>
       <p class="page-sub">${esc(section.blurb)}</p></div>
     </div>
-    ${empty ? `<p class="empty">${esc(CONFIG.labels.comingSoon)}</p>` : cardsHTML(section)}`;
+    ${empty ? `<p class="empty">${esc(L.comingSoon)}</p>` : body}`;
 }
 
 function brandView(section) {
@@ -1180,9 +1217,9 @@ function renderNav(active) {
   // The desktop sidebar: the same links with icons.
   const side = $("side-nav");
   if (side) {
-    const link = (id, title, icon) => `<a href="#/${esc(id)}"${active === id ? ' class="is-active" aria-current="page"' : ""}>${ICONS[icon] ?? ICONS.doc}<span>${esc(title)}</span></a>`;
+    const link = (id, title, icon, sec) => `<a href="#/${esc(id)}"${sec ? ` style="--sec:${sec}"` : ""}${active === id ? ' class="is-active" aria-current="page"' : ""}>${ICONS[icon] ?? ICONS.doc}<span>${esc(title)}</span></a>`;
     side.innerHTML = link("home", CONFIG.labels.home ?? "Home", "home")
-      + navSections().filter((x) => x.enabled).map((x) => link(x.id, x.title, x.icon)).join("");
+      + navSections().filter((x) => x.enabled).map((x) => link(x.id, x.title, x.icon, ac(x))).join("");
   }
   renderTabs(active);
 }
@@ -1368,7 +1405,7 @@ function boot() {
   if (!CONFIG.features.search) $("search-open").hidden = true;
 
   wireValues();
-  wireQuickEdit();
+  if (CONFIG.features.quickActions) wireQuickEdit();
   route();
 }
 
@@ -1438,7 +1475,7 @@ async function start() {
     selectAll("hub_cards", "sort_order"),
     selectAll("staff_directory", "last_name"),
     selectAll("handbook_sections", "sort_order"),
-    selectAll("quick_link_prefs"),
+    CONFIG.features.quickActions ? selectAll("quick_link_prefs") : [],
   ]);
   if (quickPrefs[0]) myQuick = quickPrefs[0].links ?? [];
   mergeProtectedCards(cards);
