@@ -111,7 +111,7 @@ export const CONFIG = {
     signOut: "Sign out",
 
     // "View as" (admins only, see the view-as section in app.js)
-    viewAs: "View as someone else",
+    viewAs: "Sign in as a different user",
     viewAsExit: "Back to my view",
     viewAsTitle: "View the hub as",
     viewAsHelp: "This only changes what you see in this tab. You stay signed in as you, and nothing is saved as them.",

@@ -15,8 +15,8 @@
   without Microsoft, and CF staff: only the last gets rows.
 - `shared/js/auth.js` decides what to SHOW. RLS is the lock.
 
-**View as (Staff Hub, admins only).** The avatar menu offers "View as someone
-else" when `public.my_roles()` returns `admin`. It only changes what that one
+**View as (Staff Hub, admins only).** The avatar menu offers "Sign in as a
+different user" when `public.my_roles()` returns `admin`. It only changes what that one
 tab shows (name, initials, greeting), and it keeps the admin's own session, so
 RLS is unchanged and it can't reach anything new. The choice lives in
 `sessionStorage` and ends with the tab. Staff without the role can't turn it on.
