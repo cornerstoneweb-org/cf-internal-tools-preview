@@ -51,3 +51,11 @@ MCP connector.
 ## Writing
 
 No em dashes.
+
+## Staff names
+
+`staff_directory.first_name` is the legal name from the HR roster.
+`preferred_name` is the name someone goes by, and the site shows it when set.
+A roster refresh must keep `preferred_name`, so update rows by email rather
+than deleting and reinserting them. Set values through the connector, never in
+the repo.

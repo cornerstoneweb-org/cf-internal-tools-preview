@@ -526,7 +526,9 @@ function brandView(section) {
 // People come from the locked staff_directory table after sign-in.
 let STAFF = [];
 const campusOf = (code) => CONFIG.campuses?.[code] ?? { label: code, color: "var(--slate)" };
-const personName = (p) => `${p.first_name} ${p.last_name}`;
+// The name someone goes by comes first; first_name stays as HR has it.
+const givenName = (p) => p.preferred_name || p.first_name;
+const personName = (p) => `${givenName(p)} ${p.last_name}`;
 const teams = (kind, email) => `https://teams.microsoft.com/l/${kind}/0/0?users=${encodeURIComponent(email)}`;
 
 function staffLinks(p) {
@@ -559,9 +561,9 @@ function directoryView(section) {
     .sort((a, b) => campusOf(a).label.localeCompare(campusOf(b).label));
   const people = STAFF.map((p) => {
     const c = campusOf(p.campus_code);
-    const q = `${personName(p)} ${p.title ?? ""} ${c.label}`.toLowerCase();
+    const q = `${personName(p)} ${p.first_name} ${p.title ?? ""} ${c.label}`.toLowerCase();
     return `<li class="person" data-campus="${esc(p.campus_code)}" data-q="${esc(q)}" style="--camp:${esc(c.color)}">
-      <span class="person-av" aria-hidden="true">${esc((p.first_name[0] + p.last_name[0]).toUpperCase())}</span>
+      <span class="person-av" aria-hidden="true">${esc((givenName(p)[0] + p.last_name[0]).toUpperCase())}</span>
       <span class="person-main">
         <b>${esc(personName(p))}</b>
         <span class="person-title">${esc(p.title ?? "")}</span>
@@ -1447,8 +1449,11 @@ function firstNameOf(session) {
 let signedInEmail = "";
 function renderMe(session) {
   signedInEmail = session.user.email ?? "";
-  firstName = viewingAs ? viewingAs.first_name : firstNameOf(session);
-  const name = viewingAs ? personName(viewingAs) : displayName(session);
+  // Microsoft's name loses to the roster only when someone has a preferred name.
+  const email = session.user.email?.toLowerCase();
+  const me = viewingAs ?? STAFF.find((p) => p.preferred_name && p.email.toLowerCase() === email);
+  firstName = me ? givenName(me) : firstNameOf(session);
+  const name = me ? personName(me) : displayName(session);
   $("avatar").textContent = initials(name);
   $("me-name").textContent = name;
   $("me-role").textContent = viewingAs ? viewingAs.email : session.user.email ?? "";
@@ -1524,7 +1529,7 @@ function openViewAsPicker(session) {
   const list = d.querySelector("#va-list");
   const draw = (q = "") => {
     const t = q.trim().toLowerCase();
-    const hits = people.filter((p) => `${personName(p)} ${p.title ?? ""}`.toLowerCase().includes(t));
+    const hits = people.filter((p) => `${personName(p)} ${p.first_name} ${p.title ?? ""}`.toLowerCase().includes(t));
     list.innerHTML = hits.length
       ? hits.map((p) => `<button type="button" class="va-person" data-email="${esc(p.email)}">
           <b>${esc(personName(p))}</b>
