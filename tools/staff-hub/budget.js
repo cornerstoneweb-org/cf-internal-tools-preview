@@ -23,6 +23,7 @@ const dateOf = (s) => { const [y, m, d] = s.split("-").map(Number); return new D
 const LONG = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" });
 const SHORT = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" });
 const MONTH = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" });
+const MON = new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric" });
 
 /* ---------- data ---------- */
 async function rows(table) {
@@ -54,18 +55,26 @@ function monthsIn(about) {
   const a = dateOf(about.period_start), b = dateOf(about.through_date);
   return (b.getFullYear() - a.getFullYear()) * 12 + b.getMonth() - a.getMonth() + 1;
 }
+// The twelve fiscal months, Sep to Aug.
 function monthsList(about) {
   const a = dateOf(about.period_start);
-  return Array.from({ length: monthsIn(about) }, (_, i) => {
+  return Array.from({ length: 12 }, (_, i) => {
     const d = new Date(a.getFullYear(), a.getMonth() + i, 1);
-    return { i, label: MONTH.format(d), key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}` };
+    return { i, date: d, label: MONTH.format(d), key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}` };
   });
 }
-// period: null is the year to date, otherwise a monthsList entry.
-const plannedFor = (line, period, n) => period
-  ? Number(line.monthly[period.i] ?? 0)
-  : line.monthly.slice(0, n).reduce((t, v) => t + Number(v), 0);
-const inPeriod = (t, period) => !period || t.txn_date.startsWith(period.key);
+// A period runs from one fiscal month to another, both included. `year` means
+// year to date or the full year, where "Left" is the whole year's. Any other
+// range compares spending to that range's plan.
+function periodOf(from, to, about) {
+  const months = monthsList(about);
+  const n = monthsIn(about);
+  const label = from === to ? months[from].label : `${MON.format(months[from].date)} to ${MON.format(months[to].date)}`;
+  return { from, to, label, keys: new Set(months.slice(from, to + 1).map((m) => m.key)),
+    year: from === 0 && (to === n - 1 || to === 11), ytd: from === 0 && to === n - 1, full: from === 0 && to === 11, future: to >= n };
+}
+const plannedFor = (line, period) => line.monthly.slice(period.from, period.to + 1).reduce((t, v) => t + Number(v), 0);
+const inPeriod = (t, period) => period.keys.has(t.txn_date.slice(0, 7));
 
 function totals(budgetId, d) {
   const lines = d.lines.filter((l) => l.budget_id === budgetId);
@@ -74,8 +83,8 @@ function totals(budgetId, d) {
   const income = sum(lines.filter((l) => l.account_type === "Income"), (l) => l.annual);
   const spent = sum(txns.filter((t) => t.kind === "expense"), (t) => t.amount);
   const received = sum(txns.filter((t) => t.kind === "income"), (t) => t.amount);
-  const n = d.load ? monthsIn(d.load) : 0;
-  const planned = sum(lines.filter((l) => l.account_type === "Expense"), (l) => plannedFor(l, null, n));
+  const ytd = d.load ? periodOf(0, Math.min(monthsIn(d.load), 12) - 1, d.load) : null;
+  const planned = ytd ? sum(lines.filter((l) => l.account_type === "Expense"), (l) => plannedFor(l, ytd)) : 0;
   return { expense, income, net: expense - income, spent, received, planned, remaining: expense - income + received - spent };
 }
 
@@ -112,7 +121,7 @@ function leftText(left) {
 
 function txnList(txns, period) {
   const shown = txns.filter((t) => inPeriod(t, period)).sort((a, b) => a.txn_date.localeCompare(b.txn_date));
-  if (!shown.length) return `<p class="bg-none">${esc(period ? L.noneInPeriod : L.noneYet)}</p>`;
+  if (!shown.length) return `<p class="bg-none">${esc(period.year ? L.noneYet : L.noneInPeriod)}</p>`;
   return `<ul class="bg-txns">${shown.map((t) => `<li>
       <span class="bg-t-date">${esc(SHORT.format(dateOf(t.txn_date)))}</span>
       <span class="bg-t-main"><b>${esc(t.payee_display ?? L.noPayee)}</b>${t.memo_display ? `<span>${esc(t.memo_display)}</span>` : ""}${t.pending_review ? `<em>${esc(L.underReview)}</em>` : ""}</span>
@@ -120,16 +129,16 @@ function txnList(txns, period) {
     </li>`).join("")}</ul>`;
 }
 
-function accountRow(a, period, n, kind) {
+function accountRow(a, period, kind) {
   const actual = sum(a.txns.filter((t) => inPeriod(t, period)), (t) => t.amount);
   const year = sum(a.txns, (t) => t.amount);
   // "Left" compares like with like: the full year, or the month being shown.
-  const left = period ? plannedFor(a, period, n) - actual : a.annual - year;
+  const left = period.year ? a.annual - year : plannedFor(a, period) - actual;
   return `<details class="bg-acct">
     <summary>
       <span class="bg-a-name"><b>${esc(a.account_name ?? a.account_code)}</b>${kind === "income" ? `<small>${esc(a.class_name)}</small>` : ""}${a.unplanned ? `<em>${esc(L.notInBudget)}</em>` : ""}</span>
       <span class="bg-num" data-k="${esc(L.colBudget)}">${esc(money(a.annual))}</span>
-      <span class="bg-num bg-opt" data-k="${esc(L.colPlanned)}">${esc(money(plannedFor(a, period, n)))}</span>
+      <span class="bg-num bg-opt" data-k="${esc(L.colPlanned)}">${esc(money(plannedFor(a, period)))}</span>
       <span class="bg-num" data-k="${esc(kind === "expense" ? L.colSpent : L.colReceived)}">${esc(money(actual))}</span>
       <span class="bg-num" data-k="${esc(lastCol(kind, period))}">${kind === "expense" ? leftText(left) : esc(money(left))}</span>
     </summary>
@@ -137,35 +146,38 @@ function accountRow(a, period, n, kind) {
   </details>`;
 }
 
-const lastCol = (kind, period) => kind === "expense"
-  ? (period ? L.colLeftMonth : L.colLeft)
-  : (period ? L.colToGoMonth : L.colToGo);
+const lastCol = (kind, period) => {
+  if (period.year) return kind === "expense" ? L.colLeft : L.colToGo;
+  if (period.from === period.to) return kind === "expense" ? L.colLeftMonth : L.colToGoMonth;
+  return kind === "expense" ? L.colLeftRange : L.colToGoRange;
+};
 
 function columns(kind, period) {
   return `<div class="bg-cols" aria-hidden="true"><span></span><span>${esc(L.colBudget)}</span><span class="bg-opt">${esc(L.colPlanned)}</span>
     <span>${esc(kind === "expense" ? L.colSpent : L.colReceived)}</span><span>${esc(lastCol(kind, period))}</span></div>`;
 }
 
-function classGroups(list, period, n) {
+function classGroups(list, period) {
   const classes = [...new Set(list.map((a) => a.class_code))];
   return classes.map((c) => {
     const inClass = list.filter((a) => a.class_code === c);
     const name = inClass[0].class_name;
     const spent = sum(inClass.flatMap((a) => a.txns).filter((t) => inPeriod(t, period)), (t) => t.amount);
     return `<section class="bg-class"><h3><span>${esc(name)}</span><small>${esc(L.spentShort(money(spent)))}</small></h3>
-      ${inClass.map((a) => accountRow(a, period, n, "expense")).join("")}</section>`;
+      ${inClass.map((a) => accountRow(a, period, "expense")).join("")}</section>`;
   }).join("");
 }
 
 function detail(budget, d, period, multi) {
   const t = totals(budget.budget_id, d);
-  const n = monthsIn(d.load);
   const months = monthsList(d.load);
+  const through = SHORT.format(dateOf(d.load.through_date));
   const pct = t.expense > 0 ? Math.min(100, (t.spent / t.expense) * 100) : 0;
   const planPct = t.expense > 0 ? Math.min(100, (t.planned / t.expense) * 100) : 0;
   const notes = d.notes.filter((x) => x.budget_id === budget.budget_id);
   const income = accounts(budget.budget_id, "income", d);
-  const spentPeriod = period ? sum(d.txns.filter((x) => x.budget_id === budget.budget_id && x.kind === "expense" && inPeriod(x, period)), (x) => x.amount) : t.spent;
+  const spentPeriod = sum(d.txns.filter((x) => x.budget_id === budget.budget_id && x.kind === "expense" && inPeriod(x, period)), (x) => x.amount);
+  const option = (m, on) => `<option value="${m.i}"${on ? " selected" : ""}>${esc(m.label)}</option>`;
   return `${multi ? `<a class="back-link" href="#/budget">← ${esc(L.back)}</a>` : ""}
     ${head(L.through(budget.budget_name, LONG.format(dateOf(d.load.through_date))))}
     <section class="dcard bg-summary">
@@ -182,24 +194,25 @@ function detail(budget, d, period, multi) {
     </section>
 
     <section class="dcard">
-      <div class="dcard-h"><h2>${esc(L.spendingHeading)}</h2>
-        <label class="bg-period"><span class="vh">${esc(L.period)}</span>
-          <select id="bg-period">
-            <option value="">${esc(L.yearToDate)}</option>
-            ${months.map((m) => `<option value="${m.i}"${period?.i === m.i ? " selected" : ""}>${esc(m.label)}</option>`).join("")}
-          </select>
-        </label>
+      <div class="dcard-h"><h2>${esc(L.spendingHeading)}</h2></div>
+      <div class="bg-range">
+        <div class="bg-presets" role="group" aria-label="${esc(L.period)}">
+          <button type="button" class="chip${period.ytd ? " is-on" : ""}" data-range="ytd" aria-pressed="${period.ytd}">${esc(L.yearToDate)}</button>
+          <button type="button" class="chip${period.full ? " is-on" : ""}" data-range="full" aria-pressed="${period.full}">${esc(L.fullYear)}</button>
+        </div>
+        <label><span>${esc(L.from)}</span><select id="bg-from">${months.map((m) => option(m, m.i === period.from)).join("")}</select></label>
+        <label><span>${esc(L.to)}</span><select id="bg-to">${months.map((m) => option(m, m.i === period.to)).join("")}</select></label>
       </div>
-      ${period ? `<p class="bg-period-note">${esc(L.periodNote(period.label, money(spentPeriod)))}</p>` : ""}
+      ${period.ytd ? "" : `<p class="bg-period-note">${esc(L.periodNote(period.label, money(spentPeriod)))}${period.future ? ` ${esc(L.futureNote(through))}` : ""}</p>`}
       ${columns("expense", period)}
-      ${classGroups(accounts(budget.budget_id, "expense", d), period, n)}
+      ${classGroups(accounts(budget.budget_id, "expense", d), period)}
       <p class="bg-hint">${esc(L.hint)}</p>
     </section>
 
     ${income.length || notes.length ? `<section class="dcard">
       <div class="dcard-h"><h2>${esc(L.incomeHeading)}</h2></div>
       ${notes.map((x) => `<p class="bg-note"><b>${esc(L.openQuestion)}</b> ${esc(x.note)}</p>`).join("")}
-      ${income.length ? columns("income", period) + income.map((a) => accountRow(a, period, n, "income")).join("") : ""}
+      ${income.length ? columns("income", period) + income.map((a) => accountRow(a, period, "income")).join("") : ""}
     </section>` : ""}`;
 }
 
@@ -232,7 +245,7 @@ const noBudget = () => `${head()}<section class="dcard bg-empty"><h2>${esc(L.non
 
 /* ---------- mount ---------- */
 let ticket = 0;
-let periodIndex = null;
+let range = null;   // { from, to } once someone changes it; null is year to date
 
 export async function mountBudget(el, { sub, viewingAsEmail }) {
   const mine = ++ticket;
@@ -259,14 +272,22 @@ export async function mountBudget(el, { sub, viewingAsEmail }) {
   if (!picked) { el.innerHTML = overview(budgets, d.access, d, view); return; }
 
   const draw = () => {
-    const months = monthsList(d.load);
-    const period = periodIndex === null ? null : months[periodIndex] ?? null;
+    const last = Math.min(monthsIn(d.load), 12) - 1;
+    const period = periodOf(range?.from ?? 0, range?.to ?? last, d.load);
     const open = [...el.querySelectorAll("details[open]")].map((x) => x.querySelector(".bg-a-name b")?.textContent);
     el.innerHTML = detail(picked, d, period, budgets.length > 1);
     el.querySelectorAll("details").forEach((x) => { if (open.includes(x.querySelector(".bg-a-name b")?.textContent)) x.open = true; });
-    el.querySelector("#bg-period").addEventListener("change", (e) => {
-      periodIndex = e.target.value === "" ? null : Number(e.target.value);
-      draw();
+    const set = (from, to) => { range = { from, to }; draw(); };
+    el.querySelector("[data-range=ytd]").addEventListener("click", () => set(0, last));
+    el.querySelector("[data-range=full]").addEventListener("click", () => set(0, 11));
+    // A start after the end pulls the other one along, so the range stays valid.
+    el.querySelector("#bg-from").addEventListener("change", (e) => {
+      const from = Number(e.target.value);
+      set(from, Math.max(from, period.to));
+    });
+    el.querySelector("#bg-to").addEventListener("change", (e) => {
+      const to = Number(e.target.value);
+      set(Math.min(period.from, to), to);
     });
   };
   draw();
