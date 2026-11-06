@@ -221,15 +221,16 @@ function detail(budget, d, period, multi) {
 }
 
 function overview(budgets, access, d, email) {
-  // "My ministries" counts budgets where this person is a supervisor. Viewer
-  // rows show up in the list but never count, per Finance's notes.
-  const mine = access.filter((a) => a.access_type === "supervisor" && a.email === email);
-  const counted = budgets.filter((b) => mine.some((a) => a.budget_id === b.budget_id));
+  // Finance's rule: one supervisor row earns a roll-up, and it then adds every
+  // budget they own or supervise. Viewer rows show in the list but never count.
+  const mine = access.filter((a) => a.email === email && a.access_type !== "viewer");
+  const supervises = mine.some((a) => a.access_type === "supervisor");
+  const counted = supervises ? budgets.filter((b) => mine.some((a) => a.budget_id === b.budget_id)) : [];
   const roll = counted.map((b) => totals(b.budget_id, d));
   const locations = [...new Map(budgets.map((b) => [b.location_code, b.location_name])).entries()]
     .sort((a, b) => a[0].localeCompare(b[0]));
   return `${head(L.throughAll(LONG.format(dateOf(d.load.through_date))))}
-    ${counted.length > 1 ? `<section class="dcard bg-summary"><div class="dcard-h"><h2>${esc(L.myMinistries)}</h2></div>
+    ${counted.length ? `<section class="dcard bg-summary"><div class="dcard-h"><h2>${esc(L.myMinistries)}</h2></div>
       <div class="bg-stats">
         ${stat(L.remaining, money(sum(roll, (r) => r.remaining)), "", "is-main")}
         ${stat(L.budgetNet, money(sum(roll, (r) => r.net)))}
