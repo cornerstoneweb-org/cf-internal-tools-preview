@@ -35,7 +35,7 @@ def main():
             k, v = sys.argv[i + 1].split("=", 1)
             aliases[k] = v
     wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
-    for name in ("About", "Budgets", "Access", "Budget_Lines", "Transactions", "Notes"):
+    for name in ("About", "Budgets", "Access", "Budget_Lines", "Transactions", "Notes", "Campus_Income"):
         if name not in wb.sheetnames:
             sys.exit(f"Missing sheet: {name}")
     months = [f"m{n:02d}" for n in range(1, 13)]
@@ -56,6 +56,10 @@ def main():
                           text(r["memo_display"]), text(r["pending_review"]) == "yes"]
                          for r in sheet(wb, "Transactions")],
         "notes": [{k: text(r[k]) for k in ("budget_id", "note")} for r in sheet(wb, "Notes")],
+        "campus": [[text(r[k]) for k in ("location_code", "location_name", "account_code", "account_name")]
+                   + [num(r["annual"]), [num(r[m]) for m in months],
+                      [num(r[f"a{n:02d}"]) for n in range(1, 13)], text(r["note"])]
+                   for r in sheet(wb, "Campus_Income")],
     }
     known = {b["budget_id"] for b in payload["budgets"]}
     for name in ("access", "lines", "transactions", "notes"):

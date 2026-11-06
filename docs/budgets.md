@@ -20,6 +20,12 @@ the access list; the hub only displays them. Numbers live only in Supabase
    If the file is too large to send in one call, ask before changing the method.
 5. Check one budget against Finance's PDF.
 
+## Campus income
+
+`budget_campus_income` holds monthly totals, never gifts or donors. Only
+supervisors of that location and admins can read it, and it sits above the
+ministries on the roll-up. It is compared to plan through the last full month.
+
 ## Rules
 
 - `previewOnly` in content.js keeps the page off the live site until Ryan says

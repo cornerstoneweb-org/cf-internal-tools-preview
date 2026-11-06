@@ -5,6 +5,7 @@
 --   Not signed in / non-CF account : nothing
 --   CF staff                       : budgets with their own budget_access row;
 --                                    their own access rows; the load date
+--   Supervisors of a location      : that location's campus income too
 --   Admin                          : everything, read only
 --   Writes                         : database owner only, through private.budget_replace
 --
@@ -18,3 +19,7 @@
 -- Retested 2026-11-05 after the all-Livermore load, as each person on the
 -- Access sheet and as staff with no budget: everyone got exactly the budgets
 -- and transactions their access rows allow. Security advisor: nothing new.
+--
+-- budget_campus_income, tested 2026-11-05 the same way: the two location
+-- supervisors and the admin see it; owners, viewers, staff with no budget and
+-- a non-CF account get nothing; anon is denied. Security advisor: nothing new.

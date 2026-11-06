@@ -1020,8 +1020,26 @@ body.is-viewing-as .main { padding-bottom: 76px; }
 .bg-stat.is-over b, .bg-over { color: var(--orange-d); font-weight: 600; }
 .bg-bar { position: relative; height: 10px; margin-top: 18px; border-radius: 999px; background: #E8EEF2; }
 .bg-bar i { position: absolute; inset: 0 auto 0 0; border-radius: 999px; background: var(--teal); }
-.bg-bar u { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: var(--ink); text-decoration: none; }
-.bg-bar-key { display: flex; justify-content: space-between; gap: 12px; margin: 8px 0 0; font-size: .8rem; color: var(--faint); }
+.bg-bar i.is-over { background: var(--orange); }
+.bg-bar u, .bg-bar s { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: var(--ink); }
+.bg-bar s { background: var(--faint); }
+.bg-bar-key { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 10px 0 0; padding: 0; list-style: none; font-size: .8rem; color: var(--faint); }
+.bg-bar-key li { display: flex; align-items: center; gap: 6px; }
+.bg-bar-key i { width: 10px; height: 10px; border-radius: 3px; background: var(--teal); }
+.bg-bar-key u { width: 2px; height: 12px; background: var(--ink); }
+.bg-c-row { display: grid; grid-template-columns: minmax(0, 1fr) 150px 110px 120px; gap: 4px 8px; align-items: end; padding: 10px; border-top: 1px solid var(--line); }
+.bg-c-row:first-child { border-top: 0; }
+.bg-c-row b { font-weight: 600; }
+.bg-c-row .bg-num::before { content: attr(data-k); display: block; font-size: .72rem; color: var(--faint); }
+.bg-c-row small, .bg-c-row .bg-note { grid-column: 1 / -1; }
+.bg-c-row small { font-size: .82rem; color: var(--faint); }
+.bg-c-row .bg-note { margin: 4px 0 0; }
+.bg-campus h3 { margin: 8px 0 0; font-size: .95rem; }
+@media (max-width: 760px) {
+  .bg-c-row { grid-template-columns: repeat(2, 1fr); }
+  .bg-c-row b { grid-column: 1 / -1; }
+  .bg-c-row .bg-num { text-align: left; }
+}
 .bg-range { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 14px; margin-bottom: 14px; }
 .bg-presets { display: flex; flex-wrap: wrap; gap: 8px; margin-right: auto; }
 .bg-range label span { display: block; margin-bottom: 3px; font-size: .75rem; font-weight: 600; color: var(--faint); }

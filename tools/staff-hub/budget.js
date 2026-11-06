@@ -39,12 +39,13 @@ async function rows(table) {
 const KEYS = {
   budget_load: { by: "through_date" }, budgets: { by: "budget_id" }, budget_access: { by: "budget_id" },
   budget_lines: { by: "id" }, budget_transactions: { by: "id" }, budget_notes: { by: "id" },
+  budget_campus_income: { by: "account_code" },
 };
 
 let cache = null;   // one fetch per page load; a new file means a refresh
 function load() {
-  cache ??= Promise.all(Object.keys(KEYS).map(rows)).then(([load, budgets, access, lines, txns, notes]) =>
-    ({ load: load[0] ?? null, budgets, access, lines, txns, notes }));
+  cache ??= Promise.all(Object.keys(KEYS).map(rows)).then(([load, budgets, access, lines, txns, notes, campus]) =>
+    ({ load: load[0] ?? null, budgets, access, lines, txns, notes, campus }));
   cache.catch(() => { cache = null; });
   return cache;
 }
@@ -113,11 +114,70 @@ function accounts(budgetId, kind, d) {
     .sort((a, b) => a.class_code.localeCompare(b.class_code) || a.account_code.localeCompare(b.account_code));
 }
 
+// Spending against plan up to the end of a fiscal month, for the progress bar.
+// `to` defaults to the latest data. Plan counts whole months.
+function progressFor(ids, d, to = monthsIn(d.load) - 1) {
+  const months = monthsList(d.load);
+  const end = months[Math.min(to, 11)];
+  const lines = d.lines.filter((l) => ids.includes(l.budget_id) && l.account_type === "Expense");
+  const txns = d.txns.filter((t) => ids.includes(t.budget_id) && t.kind === "expense" && t.txn_date.slice(0, 7) <= end.key);
+  const label = to === monthsIn(d.load) - 1 ? SHORT.format(dateOf(d.load.through_date)) : MON.format(end.date);
+  return { budget: sum(lines, (l) => l.annual), spent: sum(txns, (t) => t.amount),
+    planned: sum(lines, (l) => plannedFor(l, { from: 0, to })), label };
+}
+
 /* ---------- pieces ---------- */
 const head = (sub) => `<div class="page-head has-accent" style="--sec:var(--sec-guides)">
     <div><h1 class="page-title">${esc(L.title)}</h1>${sub ? `<p class="page-sub">${esc(sub)}</p>` : ""}</div>
   </div>`;
 const stat = (k, v, note, cls = "") => `<div class="bg-stat ${cls}"><span>${esc(k)}</span><b>${esc(v)}</b>${note ? `<small>${esc(note)}</small>` : ""}</div>`;
+
+// One bar: its full length is the year's spending budget. If spending passes
+// that, the scale grows so the fill never runs off the end.
+function progressBar({ budget, spent, planned, label }) {
+  const scale = Math.max(budget, spent, 1);
+  const at = (n) => `${Math.max(0, Math.min(100, (n / scale) * 100)).toFixed(1)}%`;
+  return `<div class="bg-bar" role="img" aria-label="${esc(L.barLabel(money(spent), money(planned), money(budget)))}">
+      <i class="${spent > budget ? "is-over" : ""}" style="width:${at(spent)}"></i>
+      <u style="left:${at(planned)}"></u>
+      ${spent > budget ? `<s style="left:${at(budget)}"></s>` : ""}
+    </div>
+    <ul class="bg-bar-key">
+      <li><i></i>${esc(L.barSpent(money(spent), label))}</li>
+      <li><u></u>${esc(L.barPlanned(money(planned), label))}</li>
+      <li>${esc(L.barBudget(money(budget)))}</li>
+    </ul>`;
+}
+
+// Monthly totals only. Received is compared to plan through the last full
+// month, because a partial month against a full month's plan looks behind.
+function campusIncome(rows, d) {
+  if (!rows.length) return "";
+  const through = dateOf(d.load.through_date);
+  const monthEnded = new Date(through.getFullYear(), through.getMonth(), through.getDate() + 1).getDate() === 1;
+  const full = monthsIn(d.load) - (monthEnded ? 0 : 1);
+  const months = monthsList(d.load);
+  const places = [...new Map(rows.map((r) => [r.location_code, r.location_name])).entries()];
+  return `<section class="dcard"><div class="dcard-h"><h2>${esc(L.campusHeading)}</h2></div>
+    ${places.map(([code, name]) => `<div class="bg-campus">
+      ${places.length > 1 ? `<h3>${esc(name)}</h3>` : ""}
+      ${rows.filter((r) => r.location_code === code).map((r) => {
+        const got = r.received.slice(0, full).reduce((t, v) => t + Number(v), 0);
+        const plan = r.monthly.slice(0, full).reduce((t, v) => t + Number(v), 0);
+        const partial = monthEnded ? null : Number(r.received[full] ?? 0);
+        return `<div class="bg-c-row">
+          <b>${esc(r.account_name)}</b>
+          <span class="bg-num" data-k="${esc(full ? L.campusReceived(MON.format(months[full - 1].date)) : L.campusNoFull)}">${esc(money(got))}</span>
+          <span class="bg-num" data-k="${esc(L.campusPlanned)}">${esc(money(plan))}</span>
+          <span class="bg-num" data-k="${esc(L.campusYear)}">${esc(money(r.annual))}</span>
+          ${partial === null ? "" : `<small>${esc(L.campusPartial(months[full].label, money(partial)))}</small>`}
+          ${r.note ? `<p class="bg-note">${esc(r.note)}</p>` : ""}
+        </div>`;
+      }).join("")}
+    </div>`).join("")}
+    <p class="bg-hint">${esc(L.campusNote)}</p>
+  </section>`;
+}
 
 function leftText(left) {
   return left < 0 ? `<span class="bg-over">${esc(L.over(money(-left)))}</span>` : esc(money(left));
@@ -176,8 +236,6 @@ function detail(budget, d, period, multi) {
   const t = totals(budget.budget_id, d);
   const months = monthsList(d.load);
   const through = SHORT.format(dateOf(d.load.through_date));
-  const pct = t.expense > 0 ? Math.min(100, (t.spent / t.expense) * 100) : 0;
-  const planPct = t.expense > 0 ? Math.min(100, (t.planned / t.expense) * 100) : 0;
   const notes = d.notes.filter((x) => x.budget_id === budget.budget_id);
   const income = accounts(budget.budget_id, "income", d);
   const spentPeriod = sum(d.txns.filter((x) => x.budget_id === budget.budget_id && x.kind === "expense" && inPeriod(x, period)), (x) => x.amount);
@@ -191,10 +249,7 @@ function detail(budget, d, period, multi) {
         ${stat(L.spending, money(t.spent), L.spendingNote(money(t.planned)))}
         ${stat(L.received, money(t.received), L.receivedNote(money(t.income)))}
       </div>
-      <div class="bg-bar" role="img" aria-label="${esc(L.barLabel(Math.round(pct), Math.round(planPct)))}">
-        <i style="width:${pct.toFixed(1)}%"></i><u style="left:${planPct.toFixed(1)}%"></u>
-      </div>
-      <p class="bg-bar-key"><span>${esc(L.barSpent(Math.round(pct)))}</span><span>${esc(L.barPlanned(Math.round(planPct)))}</span></p>
+      ${progressBar(progressFor([budget.budget_id], d, period.to))}
     </section>
 
     <section class="dcard">
@@ -220,7 +275,7 @@ function detail(budget, d, period, multi) {
     </section>` : ""}`;
 }
 
-function overview(budgets, access, d, email) {
+function overview(budgets, access, d, email, campus) {
   // Finance's rule: one supervisor row earns a roll-up, and it then adds every
   // budget they own or supervise. Viewer rows show in the list but never count.
   const mine = access.filter((a) => a.email === email && a.access_type !== "viewer");
@@ -230,19 +285,22 @@ function overview(budgets, access, d, email) {
   const locations = [...new Map(budgets.map((b) => [b.location_code, b.location_name])).entries()]
     .sort((a, b) => a[0].localeCompare(b[0]));
   return `${head(L.throughAll(LONG.format(dateOf(d.load.through_date))))}
+    ${campusIncome(campus, d)}
     ${counted.length ? `<section class="dcard bg-summary"><div class="dcard-h"><h2>${esc(L.myMinistries)}</h2></div>
       <div class="bg-stats">
         ${stat(L.remaining, money(sum(roll, (r) => r.remaining)), "", "is-main")}
         ${stat(L.budgetNet, money(sum(roll, (r) => r.net)))}
         ${stat(L.spending, money(sum(roll, (r) => r.spent)))}
         ${stat(L.received, money(sum(roll, (r) => r.received)))}
-      </div><p class="bg-hint">${esc(L.myMinistriesNote)}</p></section>` : ""}
+      </div>
+      ${progressBar(progressFor(counted.map((b) => b.budget_id), d))}
+      <p class="bg-hint">${esc(L.myMinistriesNote)}</p></section>` : ""}
     ${locations.map(([code, name]) => `<section class="dcard"><div class="dcard-h"><h2>${esc(name)}</h2></div>
       <div class="bg-list">${budgets.filter((b) => b.location_code === code).map((b) => {
         const t = totals(b.budget_id, d);
         return `<a href="#/budget/${esc(b.budget_id)}"><b>${esc(b.budget_name)}</b>
           <span>${esc(L.listLine(money(t.spent), money(t.net)))}</span>
-          <span class="bg-list-left">${esc(L.leftShort(money(t.remaining)))}</span></a>`;
+          <span class="bg-list-left">${t.remaining < 0 ? leftText(t.remaining) : esc(L.leftShort(money(t.remaining)))}</span></a>`;
       }).join("")}</div></section>`).join("")}`;
 }
 
@@ -273,8 +331,13 @@ export async function mountBudget(el, { sub, signedInEmail, viewingAsEmail }) {
     .sort((a, b) => a.location_code.localeCompare(b.location_code) || a.budget_name.localeCompare(b.budget_name));
 
   if (!budgets.length || !d.load) { el.innerHTML = noBudget(); return; }
-  const picked = budgets.find((b) => b.budget_id === sub) ?? (budgets.length === 1 ? budgets[0] : null);
-  if (!picked) { el.innerHTML = overview(budgets, d.access, d, view ?? signedInEmail?.toLowerCase()); return; }
+  const email = view ?? signedInEmail?.toLowerCase();
+  // RLS already limits campus income; this only narrows it for "view as".
+  const supervised = new Set(d.access.filter((a) => a.email === email && a.access_type === "supervisor")
+    .map((a) => d.budgets.find((b) => b.budget_id === a.budget_id)?.location_code));
+  const campus = view ? d.campus.filter((c) => supervised.has(c.location_code)) : d.campus;
+  const picked = budgets.find((b) => b.budget_id === sub) ?? (budgets.length === 1 && !supervised.size ? budgets[0] : null);
+  if (!picked) { el.innerHTML = overview(budgets, d.access, d, email, campus); return; }
 
   const draw = () => {
     const last = Math.min(monthsIn(d.load), 12) - 1;
