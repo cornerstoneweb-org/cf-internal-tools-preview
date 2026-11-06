@@ -123,22 +123,27 @@ function txnList(txns, period) {
 function accountRow(a, period, n, kind) {
   const actual = sum(a.txns.filter((t) => inPeriod(t, period)), (t) => t.amount);
   const year = sum(a.txns, (t) => t.amount);
-  const left = a.annual - year;
+  // "Left" compares like with like: the full year, or the month being shown.
+  const left = period ? plannedFor(a, period, n) - actual : a.annual - year;
   return `<details class="bg-acct">
     <summary>
       <span class="bg-a-name"><b>${esc(a.account_name ?? a.account_code)}</b>${kind === "income" ? `<small>${esc(a.class_name)}</small>` : ""}${a.unplanned ? `<em>${esc(L.notInBudget)}</em>` : ""}</span>
       <span class="bg-num" data-k="${esc(L.colBudget)}">${esc(money(a.annual))}</span>
       <span class="bg-num bg-opt" data-k="${esc(L.colPlanned)}">${esc(money(plannedFor(a, period, n)))}</span>
       <span class="bg-num" data-k="${esc(kind === "expense" ? L.colSpent : L.colReceived)}">${esc(money(actual))}</span>
-      <span class="bg-num" data-k="${esc(kind === "expense" ? L.colLeft : L.colToGo)}">${kind === "expense" ? leftText(left) : esc(money(left))}</span>
+      <span class="bg-num" data-k="${esc(lastCol(kind, period))}">${kind === "expense" ? leftText(left) : esc(money(left))}</span>
     </summary>
     ${txnList(a.txns, period)}
   </details>`;
 }
 
-function columns(kind) {
+const lastCol = (kind, period) => kind === "expense"
+  ? (period ? L.colLeftMonth : L.colLeft)
+  : (period ? L.colToGoMonth : L.colToGo);
+
+function columns(kind, period) {
   return `<div class="bg-cols" aria-hidden="true"><span></span><span>${esc(L.colBudget)}</span><span class="bg-opt">${esc(L.colPlanned)}</span>
-    <span>${esc(kind === "expense" ? L.colSpent : L.colReceived)}</span><span>${esc(kind === "expense" ? L.colLeft : L.colToGo)}</span></div>`;
+    <span>${esc(kind === "expense" ? L.colSpent : L.colReceived)}</span><span>${esc(lastCol(kind, period))}</span></div>`;
 }
 
 function classGroups(list, period, n) {
@@ -186,7 +191,7 @@ function detail(budget, d, period, multi) {
         </label>
       </div>
       ${period ? `<p class="bg-period-note">${esc(L.periodNote(period.label, money(spentPeriod)))}</p>` : ""}
-      ${columns("expense")}
+      ${columns("expense", period)}
       ${classGroups(accounts(budget.budget_id, "expense", d), period, n)}
       <p class="bg-hint">${esc(L.hint)}</p>
     </section>
@@ -194,7 +199,7 @@ function detail(budget, d, period, multi) {
     ${income.length || notes.length ? `<section class="dcard">
       <div class="dcard-h"><h2>${esc(L.incomeHeading)}</h2></div>
       ${notes.map((x) => `<p class="bg-note"><b>${esc(L.openQuestion)}</b> ${esc(x.note)}</p>`).join("")}
-      ${income.length ? columns("income") + income.map((a) => accountRow(a, period, n, "income")).join("") : ""}
+      ${income.length ? columns("income", period) + income.map((a) => accountRow(a, period, n, "income")).join("") : ""}
     </section>` : ""}`;
 }
 
