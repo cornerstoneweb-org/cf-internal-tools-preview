@@ -14,3 +14,7 @@
 -- budget and only their own access rows; staff with no budget see nothing but
 -- the load date; the last two and anon see nothing. No role can write or call
 -- private.budget_replace. Security advisor: nothing new.
+--
+-- Retested 2026-11-05 after the all-Livermore load, as each person on the
+-- Access sheet and as staff with no budget: everyone got exactly the budgets
+-- and transactions their access rows allow. Security advisor: nothing new.

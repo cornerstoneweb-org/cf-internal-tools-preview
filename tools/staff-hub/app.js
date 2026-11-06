@@ -1340,7 +1340,7 @@ function route() {
   document.title = `${section ? section.title + " · " : ""}Staff Hub | Cornerstone Fellowship`;
   if (section?.layout === "budget") {
     $("search").placeholder = CONFIG.labels.searchPlaceholder;
-    mountBudget($("view"), { sub, viewingAsEmail: viewingAs?.email });
+    mountBudget($("view"), { sub, signedInEmail, viewingAsEmail: viewingAs?.email });
   }
   if (section?.layout === "brand") wireSwatches();
   if (section?.layout === "directory") wireDirectory();
@@ -1444,7 +1444,9 @@ function firstNameOf(session) {
   return full.includes("@") ? "" : full.trim().split(/\s+/)[0] ?? "";
 }
 
+let signedInEmail = "";
 function renderMe(session) {
+  signedInEmail = session.user.email ?? "";
   firstName = viewingAs ? viewingAs.first_name : firstNameOf(session);
   const name = viewingAs ? personName(viewingAs) : displayName(session);
   $("avatar").textContent = initials(name);

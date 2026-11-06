@@ -22,6 +22,11 @@ def text(v):
     return None if v is None else str(v).strip()
 
 
+def num(v):
+    n = round(float(v or 0), 2)
+    return int(n) if n == int(n) else n
+
+
 def main():
     path, out = sys.argv[1], sys.argv[2]
     aliases = {}
@@ -40,25 +45,25 @@ def main():
         "budgets": [{k: text(r[k]) for k in ("budget_id", "budget_name", "location_code", "location_name", "owner_name")}
                     for r in sheet(wb, "Budgets")],
         "access": [{k: text(r[k]) for k in ("person_name", "budget_id", "access_type")} for r in sheet(wb, "Access")],
-        "lines": [{**{k: text(r[k]) for k in ("budget_id", "class_code", "class_name", "account_code", "account_name", "account_type")},
-                   "annual": float(r["annual"] or 0), "monthly": [float(r[m] or 0) for m in months]}
+        # Plain rows: order must match private.budget_replace.
+        "lines": [[text(r[k]) for k in ("budget_id", "class_code", "class_name", "account_code", "account_name", "account_type")]
+                  + [num(r["annual"]), [num(r[m]) for m in months]]
                   for r in sheet(wb, "Budget_Lines")],
-        "transactions": [{"budget_id": text(r["budget_id"]), "txn_date": text(r["date"]), "class_code": text(r["class_code"]),
-                          "account_code": text(r["account_code"]), "account_name": text(r["account_name"]),
-                          "posted_account": text(r["posted_account"]), "kind": r["kind"], "amount": float(r["amount"]),
-                          # Finance's rule: unlisted income payees show as Individual.
-                          "payee_display": text(r["payee_display"]) or ("Individual" if r["kind"] == "income" else None),
-                          "memo_display": text(r["memo_display"]), "pending_review": text(r["pending_review"]) == "yes"}
+        "transactions": [[text(r["budget_id"]), text(r["date"]), text(r["class_code"]), text(r["class_name"]),
+                          text(r["account_code"]), text(r["account_name"]), text(r["posted_account"]), r["kind"], num(r["amount"]),
+                          # Finance's rule: anyone not on its cleared list shows generically.
+                          text(r["payee_display"]) or ("Individual" if r["kind"] == "income" else "Reimbursement"),
+                          text(r["memo_display"]), text(r["pending_review"]) == "yes"]
                          for r in sheet(wb, "Transactions")],
         "notes": [{k: text(r[k]) for k in ("budget_id", "note")} for r in sheet(wb, "Notes")],
     }
     known = {b["budget_id"] for b in payload["budgets"]}
     for name in ("access", "lines", "transactions", "notes"):
-        stray = {r["budget_id"] for r in payload[name]} - known
+        stray = {r["budget_id"] if isinstance(r, dict) else r[0] for r in payload[name]} - known
         if stray:
             sys.exit(f"{name} names budgets not on the Budgets sheet: {stray}")
     tag = "budget_load"
-    body = json.dumps(payload, ensure_ascii=False)
+    body = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
     if f"${tag}$" in body:
         sys.exit("Quote tag appears in the data")
     with open(out, "w") as f:

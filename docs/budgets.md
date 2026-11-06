@@ -17,6 +17,7 @@ the access list; the hub only displays them. Numbers live only in Supabase
    replaces every budget row in one transaction. A name on the Access sheet
    with no single active roster match stops the load. `--alias "A=B"` maps a
    Finance spelling to the roster spelling for one run; fix the source too.
+   If the file is too large to send in one call, ask before changing the method.
 5. Check one budget against Finance's PDF.
 
 ## Rules

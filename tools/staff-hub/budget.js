@@ -102,7 +102,11 @@ function accounts(budgetId, kind, d) {
   for (const l of d.lines.filter((x) => x.budget_id === budgetId && x.account_type === type)) {
     Object.assign(entry(l), { annual: Number(l.annual), monthly: l.monthly, class_name: l.class_name, unplanned: false });
   }
-  for (const t of d.txns.filter((x) => x.budget_id === budgetId && x.kind === kind)) entry(t).txns.push(t);
+  for (const t of d.txns.filter((x) => x.budget_id === budgetId && x.kind === kind)) {
+    const a = entry(t);
+    a.class_name ??= t.class_name;
+    a.txns.push(t);
+  }
   const names = new Map(d.lines.filter((x) => x.budget_id === budgetId).map((l) => [l.class_code, l.class_name]));
   return [...map.values()]
     .map((a) => ({ ...a, class_name: a.class_name ?? names.get(a.class_code) ?? a.class_code }))
@@ -216,10 +220,10 @@ function detail(budget, d, period, multi) {
     </section>` : ""}`;
 }
 
-function overview(budgets, access, d, viewEmail) {
+function overview(budgets, access, d, email) {
   // "My ministries" counts budgets where this person is a supervisor. Viewer
   // rows show up in the list but never count, per Finance's notes.
-  const mine = access.filter((a) => a.access_type === "supervisor" && (!viewEmail || a.email === viewEmail));
+  const mine = access.filter((a) => a.access_type === "supervisor" && a.email === email);
   const counted = budgets.filter((b) => mine.some((a) => a.budget_id === b.budget_id));
   const roll = counted.map((b) => totals(b.budget_id, d));
   const locations = [...new Map(budgets.map((b) => [b.location_code, b.location_name])).entries()]
@@ -247,7 +251,7 @@ const noBudget = () => `${head()}<section class="dcard bg-empty"><h2>${esc(L.non
 let ticket = 0;
 let range = null;   // { from, to } once someone changes it; null is year to date
 
-export async function mountBudget(el, { sub, viewingAsEmail }) {
+export async function mountBudget(el, { sub, signedInEmail, viewingAsEmail }) {
   const mine = ++ticket;
   el.innerHTML = `${head()}<section class="dcard"><p class="bg-loading">${esc(L.loading)}</p></section>`;
   let d;
@@ -269,7 +273,7 @@ export async function mountBudget(el, { sub, viewingAsEmail }) {
 
   if (!budgets.length || !d.load) { el.innerHTML = noBudget(); return; }
   const picked = budgets.find((b) => b.budget_id === sub) ?? (budgets.length === 1 ? budgets[0] : null);
-  if (!picked) { el.innerHTML = overview(budgets, d.access, d, view); return; }
+  if (!picked) { el.innerHTML = overview(budgets, d.access, d, view ?? signedInEmail?.toLowerCase()); return; }
 
   const draw = () => {
     const last = Math.min(monthsIn(d.load), 12) - 1;
