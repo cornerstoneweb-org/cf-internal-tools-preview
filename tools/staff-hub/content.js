@@ -507,7 +507,9 @@ export const CONTENT = {
 
     // Parked sections are named in Home's "Coming later" tile unless
     // teaser: false.
-    { id: "budgets", icon: "doc", accent: "var(--sec-default)", title: "Budget Report Access", blurb: "Coming in a future release.", enabled: false, layout: "compact", cards: [] },
+    // The Budget page (budget.js). previewOnly: on for preview and localhost,
+    // off on the live site until Ryan says "ship it" for it.
+    { id: "budget", icon: "budget", accent: "var(--sec-guides)", title: "Budget", blurb: "Your ministry budget.", enabled: true, previewOnly: true, teaser: false, layout: "budget", cards: [] },
     {
       id: "guides", icon: "book",
       accent: "var(--sec-guides)",

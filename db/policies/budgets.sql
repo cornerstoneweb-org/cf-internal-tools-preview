@@ -1,0 +1,16 @@
+-- budget_load, budgets, budget_access, budget_lines, budget_transactions, budget_notes
+-- Full definitions: migrations/0007_budgets.sql
+--
+-- Who can do what
+--   Not signed in / non-CF account : nothing
+--   CF staff                       : budgets with their own budget_access row;
+--                                    their own access rows; the load date
+--   Admin                          : everything, read only
+--   Writes                         : database owner only, through private.budget_replace
+--
+-- Tested 2026-11-05 inside a rolled-back transaction, as anon, a budget owner,
+-- two supervisors, staff with no budget, an admin, a non-CF account, and a CF
+-- email not signed in through Microsoft. Owner and supervisors see their
+-- budget and only their own access rows; staff with no budget see nothing but
+-- the load date; the last two and anon see nothing. No role can write or call
+-- private.budget_replace. Security advisor: nothing new.

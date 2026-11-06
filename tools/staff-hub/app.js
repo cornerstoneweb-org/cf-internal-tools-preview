@@ -6,6 +6,7 @@ import { getSession, isStaff, displayName, userMeta, signIn, signOut, myRoles, s
 import { watchForNewVersion } from "../../shared/js/version-check.js";
 import { toast } from "../../shared/js/ui.js";
 import { mountFacilities } from "../facilities/facilities.js";
+import { mountBudget } from "./budget.js";
 
 const LIB = "../../shared/assets/brand/library/";
 
@@ -51,6 +52,7 @@ const ICONS = {
   out:      svg('<path d="M8 16 16 8M9.5 8H16v6.5"/>'),
   brush:    svg('<path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="m14 6 3 3"/>'),
   globe:    svg('<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.5 3.6 5.3 3.6 8.5s-1.2 6-3.6 8.5c-2.4-2.5-3.6-5.3-3.6-8.5s1.2-6 3.6-8.5z"/>'),
+  budget:   svg('<rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M15.5 14.5h2.5"/>'),
   laptop:   svg('<rect x="4.5" y="5" width="15" height="10" rx="1.5"/><path d="M2.5 18.5h19"/>'),
 };
 const isInternal = (url) => String(url ?? "").startsWith("#");
@@ -146,6 +148,7 @@ const FACILITIES_ON = PREVIEW || TOOLS.find((t) => t.id === "facilities")?.enabl
 const hiddenUrl = (url) => !FACILITIES_ON && /^#\/?facilities/.test(url ?? "");
 const SECTIONS = CONTENT.sections.map((s) => ({
   ...s,
+  enabled: s.enabled && (!s.previewOnly || PREVIEW),
   cards: s.cards.map((c) => c.links?.some((l) => hiddenUrl(l.url))
     ? { ...c, links: c.links.map((l) => hiddenUrl(l.url) ? { label: l.label, url: null, status: "pending" } : l) }
     : c),
@@ -1328,12 +1331,17 @@ function route() {
       : section.layout === "handbook" ? handbookView(section)
       : section.layout === "paydates" ? payDatesView(section)
       : section.layout === "holidays" ? holidaysView(section)
+      : section.layout === "budget" ? ""
       : sectionView(section))
     : homeView();
   $("search").placeholder = section
     ? CONFIG.labels.sectionSearchPlaceholder(section.title)
     : CONFIG.labels.searchPlaceholder;
   document.title = `${section ? section.title + " · " : ""}Staff Hub | Cornerstone Fellowship`;
+  if (section?.layout === "budget") {
+    $("search").placeholder = CONFIG.labels.searchPlaceholder;
+    mountBudget($("view"), { sub, viewingAsEmail: viewingAs?.email });
+  }
   if (section?.layout === "brand") wireSwatches();
   if (section?.layout === "directory") wireDirectory();
   if (section?.layout === "handbook") wireHandbook(sub);
