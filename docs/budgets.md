@@ -18,7 +18,9 @@ the access list; the hub only displays them. Numbers live only in Supabase
    with no single active roster match stops the load. `--alias "A=B"` maps a
    Finance spelling to the roster spelling for one run; fix the source too.
    A roster `preferred_name` also counts as a match.
-   If the file is too large to send in one call, ask before changing the method.
+   A file too large for one call goes in pieces: insert each piece into
+   `private.budget_load_chunks`, compare the joined md5 with the local file,
+   then run `private.budget_replace` on the joined text and delete the pieces.
 5. Check one budget against Finance's PDF.
 
 ## Campus income
