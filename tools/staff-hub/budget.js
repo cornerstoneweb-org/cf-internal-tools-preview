@@ -12,6 +12,7 @@
 
 import { getClient } from "../../shared/js/supabase.js";
 import { CONFIG } from "./config.js";
+import { PREVIEW_HOSTS } from "../../config/site.config.js";
 
 const L = CONFIG.labels.budget;
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
@@ -42,12 +43,75 @@ const KEYS = {
   budget_campus_income: { by: "account_code" },
 };
 
+// Demo mode (Nov 10): the preview site and localhost never show real money.
+// Budgets, access and line names are real, so each person sees their own
+// view, but every amount is a made-up round number and every transaction is
+// a sample. Real transactions and notes are not even fetched. Nothing is
+// written back: live reads the same database untouched.
+export const DEMO = ["localhost", "127.0.0.1", ...PREVIEW_HOSTS].includes(location.hostname);
+
 let cache = null;   // one fetch per page load; a new file means a refresh
 function load() {
-  cache ??= Promise.all(Object.keys(KEYS).map(rows)).then(([load, budgets, access, lines, txns, notes, campus]) =>
-    ({ load: load[0] ?? null, budgets, access, lines, txns, notes, campus }));
+  const skip = DEMO ? ["budget_transactions", "budget_notes"] : [];
+  cache ??= Promise.all(Object.keys(KEYS).map((t) => skip.includes(t) ? [] : rows(t))).then(([load, budgets, access, lines, txns, notes, campus]) => {
+    const d = { load: load[0] ?? null, budgets, access, lines, txns, notes, campus };
+    return DEMO && d.load ? demoData(d) : d;
+  });
   cache.catch(() => { cache = null; });
   return cache;
+}
+
+/* ---------- demo numbers ---------- */
+// A steady hash so the same line gets the same fake numbers on every load.
+function hash(str) {
+  let h = 2166136261;
+  for (const c of String(str)) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+const pick = (list, key) => list[hash(key) % list.length];
+const PAYEES = ["Sample vendor", "Demo supplier", "Example store", "Test company", "Placeholder Co."];
+
+function demoData(d) {
+  const months = monthsList(d.load);
+  const n = Math.min(monthsIn(d.load), 12);
+  const lastDay = Math.min(15, dateOf(d.load.through_date).getDate());
+  const lines = d.lines.map((l) => {
+    const key = `${l.budget_id}|${l.class_code}|${l.account_code}`;
+    const annual = l.account_type === "Income"
+      ? pick([1200, 2400, 3600, 6000], key)
+      : pick([1200, 1800, 2400, 3000, 4800, 6000, 9000, 12000, 18000, 24000], key);
+    return { ...l, annual, monthly: Array(12).fill(annual / 12) };
+  });
+  const txns = [];
+  let id = 1;
+  for (const l of lines) {
+    const kind = l.account_type === "Income" ? "income" : "expense";
+    const key = `${l.budget_id}|${l.class_code}|${l.account_code}`;
+    for (let m = 0; m < n; m++) {
+      // Each month spends 60% to 120% of plan, in round $25 steps, split in two.
+      const pct = pick([0.6, 0.8, 0.9, 1, 1, 1.1, 1.2, 0], `${key}|${m}`);
+      const total = Math.round((l.annual / 12) * pct / 25) * 25;
+      if (!total) continue;
+      const day = m === n - 1 ? lastDay : 15;
+      const parts = total >= 200 ? [Math.round(total * 0.6 / 25) * 25] : [total];
+      if (parts[0] < total) parts.push(total - parts[0]);
+      parts.forEach((amount, i) => txns.push({
+        id: id++, budget_id: l.budget_id, kind, amount, class_code: l.class_code, class_name: l.class_name,
+        account_code: l.account_code, account_name: l.account_name,
+        txn_date: `${months[m].key}-${String(Math.max(1, day - i * 7)).padStart(2, "0")}`,
+        payee_display: pick(PAYEES, `${key}|${m}|${i}`), memo_display: "Demo transaction, not real", pending_review: false,
+      }));
+    }
+  }
+  const campus = d.campus.map((r) => {
+    const key = `${r.location_code}|${r.account_code}`;
+    const tithes = /tithe|offering/i.test(r.account_name ?? "");
+    const annual = tithes ? pick([600000, 900000, 1200000, 1800000, 2400000], key) : pick([24000, 36000, 48000, 60000], key);
+    const monthly = Array(12).fill(annual / 12);
+    const received = monthly.map((v, m) => m < n ? Math.round(v * pick([0.85, 0.9, 0.95, 1, 1.05, 1.1], `${key}|${m}`) / 1000) * 1000 : 0);
+    return { ...r, annual, monthly, received, note: null };
+  });
+  return { ...d, lines, txns, notes: [], campus };
 }
 
 /* ---------- numbers ---------- */
@@ -157,26 +221,80 @@ function campusIncome(rows, d) {
   const monthEnded = new Date(through.getFullYear(), through.getMonth(), through.getDate() + 1).getDate() === 1;
   const full = monthsIn(d.load) - (monthEnded ? 0 : 1);
   const months = monthsList(d.load);
-  const places = [...new Map(rows.map((r) => [r.location_code, r.location_name])).entries()];
+  const recvLabel = full ? L.campusReceived(MON.format(months[full - 1].date)) : L.campusNoFull;
+  // Each row's numbers: received and plan through the last full month, the
+  // gap between them, the year's plan, and this month so far.
+  const figures = (list) => {
+    const got = sum(list, (r) => r.received.slice(0, full).reduce((t, v) => t + Number(v), 0));
+    const plan = sum(list, (r) => r.monthly.slice(0, full).reduce((t, v) => t + Number(v), 0));
+    const annual = sum(list, (r) => r.annual);
+    const partial = monthEnded ? null : sum(list, (r) => r.received[full] ?? 0);
+    return { got, plan, annual, partial, diff: got - plan };
+  };
+  // Income bar: full length is the year's plan, fill is received, tick is
+  // the plan so far. Coming in above plan is good news, so no orange here.
+  const bar = (f) => {
+    const scale = Math.max(f.annual, f.got, 1);
+    const at = (n) => `${Math.max(0, Math.min(100, (n / scale) * 100)).toFixed(1)}%`;
+    return `<span class="bg-mini bg-mini-in" role="img" aria-label="${esc(L.campusBarLabel(money(f.got), money(f.plan), money(f.annual)))}">
+        <i style="width:${at(f.got)}"></i>${f.annual > 0 ? `<u style="left:${at(f.plan)}"></u>` : ""}</span>`;
+  };
+  const diffText = (n) => {
+    const cls = Math.round(n) === 0 ? "" : n > 0 ? "is-ahead" : "is-behind";
+    return `<span class="bg-diff ${cls}">${n > 0 ? "+" : n < 0 ? "−" : ""}${esc(money(Math.abs(n)))}</span>`;
+  };
+  const nums = (f) => `
+      <span class="bg-num" data-k="${esc(recvLabel)}">${esc(money(f.got))}</span>
+      <span class="bg-num" data-k="${esc(L.campusPlanned)}">${esc(money(f.plan))}</span>
+      <span class="bg-num" data-k="${esc(L.campusDiff)}">${diffText(f.diff)}</span>
+      <span class="bg-num" data-k="${esc(L.campusYear)}">${esc(money(f.annual))}</span>`;
+  const soFar = (f) => f.partial === null ? "" : `<small>${esc(L.campusPartial(months[full].label, money(f.partial)))}</small>`;
+
+  const accounts = [...new Map(rows.map((r) => [r.account_code, r.account_name])).entries()];
   return `<section class="dcard"><div class="dcard-h"><h2>${esc(L.campusHeading)}</h2></div>
-    ${places.map(([code, name]) => `<div class="bg-campus">
-      ${places.length > 1 ? `<h3>${esc(name)}</h3>` : ""}
-      ${rows.filter((r) => r.location_code === code).map((r) => {
-        const got = r.received.slice(0, full).reduce((t, v) => t + Number(v), 0);
-        const plan = r.monthly.slice(0, full).reduce((t, v) => t + Number(v), 0);
-        const partial = monthEnded ? null : Number(r.received[full] ?? 0);
-        return `<div class="bg-c-row">
-          <b>${esc(r.account_name)}</b>
-          <span class="bg-num" data-k="${esc(full ? L.campusReceived(MON.format(months[full - 1].date)) : L.campusNoFull)}">${esc(money(got))}</span>
-          <span class="bg-num" data-k="${esc(L.campusPlanned)}">${esc(money(plan))}</span>
-          <span class="bg-num" data-k="${esc(L.campusYear)}">${esc(money(r.annual))}</span>
-          ${partial === null ? "" : `<small>${esc(L.campusPartial(months[full].label, money(partial)))}</small>`}
-          ${r.note ? `<p class="bg-note">${esc(r.note)}</p>` : ""}
-        </div>`;
-      }).join("")}
-    </div>`).join("")}
+    <div class="bg-c-cols" aria-hidden="true"><span></span><span>${esc(recvLabel)}</span><span>${esc(L.campusPlanned)}</span>
+      <span>${esc(L.campusDiff)}</span><span>${esc(L.campusYear)}</span></div>
+    ${accounts.map(([code, name]) => {
+      const list = rows.filter((r) => r.account_code === code)
+        .sort((a, b) => a.location_code.localeCompare(b.location_code));
+      const f = figures(list);
+      return `<details class="bg-c-acct">
+        <summary class="bg-c-row">
+          <span class="bg-c-name"><b>${esc(name)}</b>${bar(f)}${soFar(f)}</span>${nums(f)}
+        </summary>
+        <div class="bg-c-sub">${list.map((r) => {
+          const c = figures([r]);
+          return `<div class="bg-c-row">
+            <span class="bg-c-name"><b>${esc(r.location_name)}</b>${bar(c)}${soFar(c)}</span>${nums(c)}
+            ${r.note ? `<p class="bg-note">${esc(r.note)}</p>` : ""}
+          </div>`;
+        }).join("")}</div>
+      </details>`;
+    }).join("")}
     <p class="bg-hint">${esc(L.campusNote)}</p>
   </section>`;
+}
+
+// Small per-line bars (Nov 10): each person turns them on or off, and the
+// choice is remembered on this device only.
+const BARS_KEY = "cf-budget-bars";
+let showBars = (() => { try { return localStorage.getItem(BARS_KEY) === "1"; } catch { return false; } })();
+
+// A small copy of the top bar for one line: the line's year budget is the
+// full length, the fill is spending and the tick is the plan, both counted
+// from the start of the year to the end of the period shown (like the top bar).
+function miniBar(a, period) {
+  const endKey = [...period.keys].at(-1);
+  const spent = sum(a.txns.filter((t) => t.txn_date.slice(0, 7) <= endKey), (t) => t.amount);
+  const planned = plannedFor(a, { from: 0, to: period.to });
+  const budget = a.annual;
+  const scale = Math.max(budget, spent, 1);
+  const at = (n) => `${Math.max(0, Math.min(100, (n / scale) * 100)).toFixed(1)}%`;
+  return `<span class="bg-mini" role="img" aria-label="${esc(L.barLabel(money(spent), money(planned), money(budget)))}">
+      <i class="${spent > budget ? "is-over" : ""}" style="width:${at(spent)}"></i>
+      ${budget > 0 ? `<u style="left:${at(planned)}"></u>` : ""}
+      ${spent > budget && budget > 0 ? `<s style="left:${at(budget)}"></s>` : ""}
+    </span>`;
 }
 
 function leftText(left) {
@@ -200,7 +318,7 @@ function accountRow(a, period, kind) {
   const left = period.year ? a.annual - year : plannedFor(a, period) - actual;
   return `<details class="bg-acct">
     <summary>
-      <span class="bg-a-name"><b>${esc(a.account_name ?? a.account_code)}</b>${kind === "income" ? `<small>${esc(a.class_name)}</small>` : ""}${a.unplanned ? `<em>${esc(L.notInBudget)}</em>` : ""}</span>
+      <span class="bg-a-name"><b>${esc(a.account_name ?? a.account_code)}</b>${kind === "income" ? `<small>${esc(a.class_name)}</small>` : ""}${a.unplanned ? `<em>${esc(L.notInBudget)}</em>` : ""}${showBars && kind === "expense" ? miniBar(a, period) : ""}</span>
       <span class="bg-num" data-k="${esc(L.colBudget)}">${esc(money(a.annual))}</span>
       <span class="bg-num bg-opt" data-k="${esc(L.colPlanned)}">${esc(money(plannedFor(a, period)))}</span>
       <span class="bg-num" data-k="${esc(kind === "expense" ? L.colSpent : L.colReceived)}">${esc(money(actual))}</span>
@@ -253,7 +371,8 @@ function detail(budget, d, period, multi) {
     </section>
 
     <section class="dcard">
-      <div class="dcard-h"><h2>${esc(L.spendingHeading)}</h2></div>
+      <div class="dcard-h"><h2>${esc(L.spendingHeading)}</h2>
+        <button type="button" class="chip bg-bars-toggle${showBars ? " is-on" : ""}" data-bars aria-pressed="${showBars}">${esc(L.showBars)}</button></div>
       <div class="bg-range">
         <div class="bg-presets" role="group" aria-label="${esc(L.period)}">
           <button type="button" class="chip${period.ytd ? " is-on" : ""}" data-range="ytd" aria-pressed="${period.ytd}">${esc(L.yearToDate)}</button>
@@ -348,6 +467,11 @@ export async function mountBudget(el, { sub, signedInEmail, viewingAsEmail }) {
     const set = (from, to) => { range = { from, to }; draw(); };
     el.querySelector("[data-range=ytd]").addEventListener("click", () => set(0, last));
     el.querySelector("[data-range=full]").addEventListener("click", () => set(0, 11));
+    el.querySelector("[data-bars]").addEventListener("click", () => {
+      showBars = !showBars;
+      try { localStorage.setItem(BARS_KEY, showBars ? "1" : "0"); } catch { /* fine */ }
+      draw();
+    });
     // A start after the end pulls the other one along, so the range stays valid.
     el.querySelector("#bg-from").addEventListener("change", (e) => {
       const from = Number(e.target.value);

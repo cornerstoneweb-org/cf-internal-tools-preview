@@ -625,8 +625,8 @@ body.is-locked .gnav, body.is-locked .main, body.is-locked .skip, body.is-locked
 
 /* Preview site badge (PREVIEW_HOSTS in site.config.js). Never on live. */
 .preview-badge { position: fixed; left: 12px; bottom: 12px; z-index: 1000; pointer-events: none;
-  padding: 4px 10px; border-radius: 999px; background: var(--orange); color: var(--jungle);
-  font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  padding: 7px 14px; border-radius: 999px; background: var(--orange); color: var(--jungle);
+  font-size: .8rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
   box-shadow: 0 2px 8px rgb(0 0 0 / .2); }
 
 /* ---------- Quick links: Edit button and picker (2026-10-25) ---------- */
@@ -1084,4 +1084,104 @@ body.is-viewing-as .main { padding-bottom: 76px; }
   .bg-num { text-align: left; }
   .bg-num::before { content: attr(data-k); display: block; font-size: .72rem; color: var(--faint); }
   .bg-txns { padding-left: 10px; }
+}
+
+/* Each charge's amount sits under the Spent column, not under Left (Nov 10).
+   Same right-hand columns as the account row: Spent 92px, then Left 118px. */
+.bg-txns li { grid-template-columns: 56px minmax(0, 1fr) 92px 118px; gap: 8px; }
+.bg-t-amt { text-align: right; }
+@media (max-width: 760px) { .bg-txns li { grid-template-columns: 56px minmax(0, 1fr) auto; gap: 10px; } }
+
+/* Home top row (Nov 10): staff value of the week beside a compact This week. */
+.drow.dtop { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: stretch; }
+.drow.dtop > .dcard { margin-bottom: 14px; }
+.dweek-quiet { padding: 12px 14px; }
+.dweek-quiet .dcard-h { margin-bottom: 8px; }
+.dweek-quiet h2 { font-size: .78rem; font-weight: 600; color: var(--faint); text-transform: uppercase; letter-spacing: .06em; }
+.dweek-quiet .dlegend { display: none; }
+.dweek-quiet li em { font-size: .62rem; line-height: 1.15; font-weight: 600; max-width: 100%; overflow-wrap: anywhere; }
+.dweek-quiet ol { gap: 2px; }
+.dweek-quiet li { gap: 3px; }
+.dweek-quiet li small { font-size: .66rem; }
+.dweek-quiet li span { width: 28px; height: 28px; font-size: .8rem; font-weight: 600; }
+.dweek-quiet li.is-today span { box-shadow: none; }
+.dweek-quiet li.has-ev.is-today span { box-shadow: 0 0 0 2px var(--teal-d); }
+.dweek-end { display: none; }
+@media (max-width: 860px) {
+  .drow.dtop { grid-template-columns: minmax(0, 1fr); }
+  .dweek-top { display: none; }
+  .dweek-end { display: block; margin-top: 14px; }
+}
+@media (max-width: 720px) { .dweek-quiet li span { width: min(28px, 100%); height: auto; aspect-ratio: 1; } }
+
+/* "CF Staff Hub" mark (Nov 10): the solid CF circle plus "Staff Hub", so the
+   header reads as a staff tool, not the church website. */
+.hub-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
+.side-brand.hub-brand img, .gnav-brand.hub-brand img { width: 32px; height: 32px; border-radius: 50%; }
+.hub-brand span { font-size: 1.05rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; line-height: 1; white-space: nowrap; }
+/* Desktop: the sidebar already carries the mark, so the top bar copy stays hidden. */
+@media (min-width: 1000px) { .gnav-brand.hub-brand { display: none; } }
+@media (max-width: 720px) {
+  .gnav-brand.hub-brand img { width: 28px; height: 28px; }
+  .hub-brand span { font-size: .98rem; }
+}
+
+/* Faint dashed column guides on budget tables (Nov 10), so long lists still
+   read as columns. Drawn from the right edge, centered in each 8px gap:
+   10px padding, Left 118, Spent 92, Planned 92, Budget 92. Desktop only. */
+@media (min-width: 761px) {
+  .bg-cols, .bg-acct {
+    --guide: linear-gradient(to bottom, #D5DEE4 55%, transparent 0);
+    background-image: var(--guide), var(--guide), var(--guide), var(--guide);
+    background-size: 1px 6px;
+    background-repeat: repeat-y;
+    background-position: right 132px top, right 232px top, right 332px top, right 432px top;
+  }
+}
+
+/* Small per-line bars on budgets (Nov 10), toggled by "Show bars". A mini
+   version of the top bar: fill is spending, the dark tick is the plan. */
+.bg-bars-toggle { flex: none; }
+.bg-mini { position: relative; display: block; height: 6px; margin: 8px 0 2px 14px; max-width: 280px; border-radius: 999px; background: #E8EEF2; }
+.bg-mini i { position: absolute; inset: 0 auto 0 0; border-radius: 999px; background: var(--teal); }
+.bg-mini i.is-over { background: var(--orange); }
+.bg-mini u, .bg-mini s { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--ink); }
+.bg-mini s { background: var(--faint); }
+
+/* Campus income as expandable lines (Nov 10): Tithes & Offerings and Rental
+   Income, each with a bar, a Difference column, and a campus breakdown. */
+.bg-c-cols, .bg-c-acct .bg-c-row { grid-template-columns: minmax(0, 1fr) 150px 110px 110px 120px; }
+.bg-c-cols { display: grid; gap: 8px; padding: 0 10px 6px; font-size: .75rem; font-weight: 600; color: var(--faint); text-align: right; }
+.bg-c-acct { border-top: 1px solid var(--line); }
+.bg-c-acct .bg-c-row { align-items: center; border-top: 0; }
+.bg-c-acct .bg-c-row .bg-num::before { content: none; }
+.bg-c-acct > summary { cursor: pointer; list-style: none; border-radius: 8px; }
+.bg-c-acct > summary::-webkit-details-marker { display: none; }
+.bg-c-acct > summary:hover { background: #F7F9FB; }
+.bg-c-name { min-width: 0; }
+.bg-c-name small { display: block; margin: 4px 0 0 14px; }
+.bg-c-acct > summary .bg-c-name b::before { content: "›"; display: inline-block; width: 14px; text-align: center; color: var(--faint); transition: transform .15s var(--ease); }
+.bg-c-acct[open] > summary .bg-c-name b::before { transform: rotate(90deg); }
+.bg-c-sub { margin: 0 0 8px 24px; }
+.bg-c-sub .bg-c-row { padding: 8px 10px 8px 0; border-top: 1px dashed var(--line); }
+.bg-c-sub .bg-c-row b { font-weight: 500; }
+.bg-c-sub .bg-mini, .bg-c-sub .bg-c-name small { margin-left: 0; }
+.bg-mini-in i { background: var(--teal); }
+.bg-diff.is-ahead { color: var(--teal-d); font-weight: 600; }
+.bg-diff.is-behind { color: var(--orange-d); font-weight: 600; }
+@media (min-width: 761px) {
+  .bg-c-cols, .bg-c-acct {
+    --guide: linear-gradient(to bottom, #D5DEE4 55%, transparent 0);
+    background-image: var(--guide), var(--guide), var(--guide), var(--guide);
+    background-size: 1px 6px; background-repeat: repeat-y;
+    background-position: right 134px top, right 252px top, right 370px top, right 528px top;
+  }
+}
+@media (max-width: 760px) {
+  .bg-c-cols { display: none; }
+  .bg-c-acct .bg-c-row { grid-template-columns: repeat(2, 1fr); }
+  .bg-c-acct .bg-c-row .bg-c-name { grid-column: 1 / -1; }
+  .bg-c-acct .bg-c-row .bg-num { text-align: left; }
+  .bg-c-acct .bg-c-row .bg-num::before { content: attr(data-k); }
+  .bg-c-sub { margin-left: 12px; }
 }

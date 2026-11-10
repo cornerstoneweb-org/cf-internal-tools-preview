@@ -322,13 +322,12 @@ function homeView() {
          <p class="welcome-lede">${esc(L.welcomeLede)}</p>
          ${(L.welcomeBody ?? []).map((para) => `<p>${esc(para)}</p>`).join("")}
        </div>`;
-  const top = `<div class="drow is-single">${weekCardHTML()}</div>`;
   // The "Start here" row from Apps & Tools, then one staff value a week.
   const startKeys = sections().find((x) => x.startHere)?.startHere ?? [];
   const catalog = quickCatalog();
   const startItems = startKeys.map((k) => catalog.find((x) => x.key === k)).filter(Boolean);
   const start = startItems.length
-    ? `<section class="dcard" aria-labelledby="dstart-h"><div class="dcard-h"><h2 id="dstart-h">${esc(L.startHere)}</h2>
+    ? `<section class="dcard" aria-labelledby="dstart-h"><div class="dcard-h"><h2 id="dstart-h">${esc(L.homeStart ?? L.startHere)}</h2>
          <a class="dlink" href="#/software">${esc(L.seeAll)} ${ICONS.chevron}</a></div>
          <div class="apps">${tilesHTML(startItems)}</div></section>` : "";
 
@@ -425,11 +424,15 @@ function homeView() {
     panels = `<div class="cols">${tools}${attention}</div>`;
   }
 
-  // Order: greeting, this week, then the person's links. Requests, the
+  // Order (Nov 10, Ryan): greeting, staff value of the week, the quick
+  // "jump in" tools, then a smaller This week strip, then the person's links.
+  // Earlier note: Requests, the
   // sections and the staff values live in the sidebar (Ryan, Oct 29), so
   // the request table and section cards above are built but not shown.
   void browse;
-  return `${head}${top}${start}${valueOfWeekHTML()}${quick}${values}${tiles}${panels}`;
+  // On phones the calendar drops to the bottom instead (Ryan, Nov 10): the
+  // same card is built twice and CSS shows one per screen size.
+  return `${head}<div class="drow dtop">${valueOfWeekHTML()}${weekCardHTML("top")}</div>${start}${quick}${values}${tiles}${panels}${weekCardHTML("end")}`;
 }
 
 // One staff value a week, in order, changing every Monday on its own.
@@ -1183,7 +1186,7 @@ function noticeCardHTML() {
 
 // This week, Monday to Sunday: today ringed, and the notice's date, paydays
 // and office holidays marked. Every date comes from content.js.
-function weekCardHTML() {
+function weekCardHTML(where = "top") {
   const L = CONFIG.labels;
   const iso = (d) => d.toLocaleDateString("en-CA");
   const ev = new Map();
@@ -1196,13 +1199,13 @@ function weekCardHTML() {
   const mon = new Date(now); mon.setHours(12, 0, 0, 0); mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7));
   const today = iso(now);
   const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(mon); d.setDate(mon.getDate() + i); return d; });
-  return `<section class="dcard dweek" aria-labelledby="dweek-h">
-      <div class="dcard-h"><h2 id="dweek-h">${esc(L.weekHeading)}</h2>
+  return `<section class="dcard dweek dweek-quiet dweek-${where}" aria-labelledby="dweek-h-${where}">
+      <div class="dcard-h"><h2 id="dweek-h-${where}">${esc(L.weekHeading)}</h2>
         <span class="dlegend"><i class="is-today"></i>${esc(L.weekToday)}<i class="is-ev"></i>${esc(L.weekEvent)}</span></div>
       <ol>${days.map((d) => {
         const key = iso(d), e = ev.get(key), on = key === today;
         const label = d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
-        return `<li class="${on ? "is-today" : ""}${e ? ` has-ev ev-${e.kind}` : ""}">
+        return `<li class="${on ? "is-today" : ""}${e ? ` has-ev ev-${e.kind}` : ""}"${e ? ` title="${esc(e.label)}"` : ""}>
           <small aria-hidden="true">${esc(d.toLocaleDateString("en-US", { weekday: "short" }))}</small>
           <span aria-label="${esc(label + (on ? `, ${L.weekToday}` : ""))}">${d.getDate()}</span>
           ${e ? `<em>${esc(e.label)}</em>` : ""}</li>`;

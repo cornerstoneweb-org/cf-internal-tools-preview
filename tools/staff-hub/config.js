@@ -78,8 +78,8 @@ export const CONFIG = {
     tellName: (n) => `Tell ${n}`,
 
     // Corner badge on the preview site (PREVIEW_HOSTS in site.config.js)
-    previewBadge: "Preview",
-    previewBadgeNote: "Preview site. Not what staff see.",
+    previewBadge: "Demo site · all numbers are fake",
+    previewBadgeNote: "Preview and demo site. Budget amounts and transactions are made up. Not what staff see.",
 
     // Staff directory
     dirSearch: "Search by name or role",
@@ -138,12 +138,15 @@ export const CONFIG = {
       campusNoFull: "Received",
       campusPlanned: "Planned",
       campusYear: "Year's plan",
+      campusDiff: "Difference",
+      campusBarLabel: (g, p, y) => `${g} received, ${p} planned so far, ${y} planned for the year`,
       campusPartial: (m, a) => `${m} so far: ${a}`,
-      campusNote: "Monthly totals, compared through the last full month. This isn't part of the ministry numbers below.",
+      campusNote: "Monthly totals, compared through the last full month. Tap a line to see each campus. This isn't part of the ministry numbers below.",
       spendingHeading: "Spending",
       incomeHeading: "Income",
       period: "Show",
       yearToDate: "Year to date",
+      showBars: "Show bars",
       fullYear: "Full fiscal year",
       from: "From",
       to: "To",
@@ -224,6 +227,7 @@ export const CONFIG = {
       "Good to see you, {name}",
     ],
     startHere: "Start here",
+    homeStart: "Jump right in",   // Home only (Nov 10). Other ideas: "Jump to your favorites", "Frequently used"
     valueOfWeek: "Staff value of the week",
     moreTools: "Everything else",
     quickHeading: "Your tools",
