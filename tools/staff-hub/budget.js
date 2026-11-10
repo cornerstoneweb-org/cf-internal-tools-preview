@@ -528,7 +528,6 @@ function overview(budgets, access, d, email, campus) {
         ${stat(L.received, money(sum(roll, (r) => r.received)))}
       </div>
       ${progressBar(progressFor(counted.map((b) => b.budget_id), d))}
-      ${campus.length ? `<div class="bg-roll-give">${labeledBar(L.giving, give.got, give.plan, give.annual, giveLine(give), false)}</div>` : ""}
       <p class="bg-hint">${esc(L.myMinistriesNote)}</p></section>` : "";
 
   // Then each campus: its spending and giving bars, and its budgets on tap.
@@ -541,7 +540,8 @@ function overview(budgets, access, d, email, campus) {
   const camps = locations.map(([code, name]) => {
     const ids = budgets.filter((b) => b.location_code === code).map((b) => b.budget_id);
     const n = ids.length;
-    if (!supervises) return `<section class="dcard"><div class="dcard-h"><h2>${esc(name)}</h2></div>${list(code)}</section>`;
+    // One-campus views (area pastors, owners) stay as they were: a plain list.
+    if (!supervises || !many) return `<section class="dcard"><div class="dcard-h"><h2>${esc(name)}</h2></div>${list(code)}</section>`;
     const p = progressFor(ids, d);
     const g = givingFor(campus.filter((c) => c.location_code === code), d);
     return `<details class="dcard bg-camp"${many ? "" : " open"}>
@@ -557,9 +557,9 @@ function overview(budgets, access, d, email, campus) {
   }).join("");
 
   return `${head(L.throughAll(LONG.format(dateOf(d.load.through_date))))}
-    ${top}${camps}`;
-  // The Campus income card (by account) was dropped here on Nov 10: each
-  // campus card now carries its own giving bar. campusIncome() is kept.
+    ${many ? "" : campusIncome(campus, d)}${top}${camps}`;
+  // Church-wide (many campuses): no Campus income card, since each campus card
+  // carries its own giving bar. One campus: the earlier layout, unchanged.
 }
 
 const noBudget = () => `${head()}<section class="dcard bg-empty"><h2>${esc(L.noneTitle)}</h2><p>${esc(L.noneBody)}</p></section>`;
