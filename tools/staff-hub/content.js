@@ -201,7 +201,7 @@ export const CONTENT = {
       // "Start here" row at the top of the page: keys from quickActions, in
       // order. A card with hideBelow: true stays out of the list under it
       // (its only link is already in the row) but is still searchable.
-      startHere: ["email", "teams", "central", "onepoint"],
+      startHere: ["email", "teams", "central", "onepoint", "facilities"],   // facilities only shows where the tool is on (preview for now)
       enabled: true,
       layout: "full",
       reviewEvery: 12,
