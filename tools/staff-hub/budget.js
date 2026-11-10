@@ -149,9 +149,14 @@ function withCampuses(d, email) {
 
 function withSample(d, email, person, extra = false) {
   if (!DEMO || !email || !d.load) return d;
-  if (!extra && d.access.some((a) => a.email === email)) {
-    return /lead pastor|executive pastor/i.test(person?.title ?? "") ? withCampuses(d, email) : d;
+  // Lead and executive pastor see the whole church, like Chris: supervisor of
+  // every budget they can read, plus sample budgets for campuses not loaded.
+  if (!extra && /lead pastor|executive pastor/i.test(person?.title ?? "")) {
+    const add = d.budgets.filter((b) => !d.access.some((a) => a.email === email && a.budget_id === b.budget_id))
+      .map((b) => ({ email, budget_id: b.budget_id, access_type: "supervisor" }));
+    return withCampuses({ ...d, access: [...d.access, ...add] }, email);
   }
+  if (!extra && d.access.some((a) => a.email === email)) return d;
   const camp = person?.campus_code && CONFIG.campuses[person.campus_code] && !["CS", "SRV", "HW"].includes(person.campus_code) ? person.campus_code : "LV";
   const location_code = CAMPUS_CODES[camp] ?? "01";
   const location_name = CONFIG.campuses[camp]?.label ?? "Livermore";
@@ -159,7 +164,7 @@ function withSample(d, email, person, extra = false) {
   const own = MINISTRY_WORDS.find(([re]) => re.test(person?.title ?? ""))?.[1] ?? "Ministry";
   const names = pastor ? SAMPLE_MINISTRIES : [own];
   const budgets = names.map((name, i) => ({
-    budget_id: `demo-${location_code}-${email}-${i}`, budget_name: `${location_name} ${name}`, location_code, location_name,
+    budget_id: `demo-${location_code}-${name.toLowerCase().replace(/[^a-z]+/g, "-")}`,   // same for everyone, so Ryan and Chris match budget_name: `${location_name} ${name}`, location_code, location_name,
   }));
   const access = budgets.map((b) => ({ email, budget_id: b.budget_id, access_type: pastor ? "supervisor" : "owner" }));
   const lines = budgets.flatMap((b, i) => SAMPLE_LINES
