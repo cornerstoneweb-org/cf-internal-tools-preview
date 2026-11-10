@@ -114,6 +114,55 @@ function demoData(d) {
   return { ...d, lines, txns, notes: [], campus };
 }
 
+/* ---------- sample budgets for anyone (demo only) ---------- */
+// On the demo site, a person with no budget rows gets a made-up set so the
+// tool works for everyone: area and campus pastors get their campus with
+// several ministries and campus income; everyone else gets one ministry
+// budget. Built in the browser per person, never saved.
+const SAMPLE_LINES = [
+  ["6100", "Program Supplies"], ["6110", "Food & Beverage"], ["6120", "Dues & Subscriptions"],
+  ["6130", "Honorariums & Expenses"], ["6140", "Camps, Conferences & Event Fees"],
+  ["6150", "Mileage & Travel"], ["6160", "Printing & Promotion"],
+];
+const SAMPLE_MINISTRIES = ["Worship", "Kids", "Students", "Groups", "Care", "Outreach"];
+const MINISTRY_WORDS = [
+  [/worship|music/i, "Worship"], [/kid|child|nursery|preschool/i, "Kids"], [/student|youth|junior|high school/i, "Students"],
+  [/women/i, "Women"], [/\bmen\b|men's/i, "Men"], [/care|counsel/i, "Care"], [/outreach|mission/i, "Outreach"],
+  [/production|tech|media/i, "Production"], [/guest|hospitality/i, "Guest Services"], [/group|community|adult/i, "Groups"],
+  [/comm|creative|design|social/i, "Communications"], [/facilit|maintenance|custod/i, "Facilities"],
+  [/\bit\b|information/i, "IT"], [/financ|account/i, "Finance"], [/next step|connect/i, "Next Steps"],
+];
+const CAMPUS_CODES = { LV: "01", BW: "02", WC: "03", SRV: "04", HW: "05", ON: "06", CS: "01" };
+
+function withSample(d, email, person) {
+  if (!DEMO || !email || !d.load || d.access.some((a) => a.email === email)) return d;
+  const camp = person?.campus_code && CONFIG.campuses[person.campus_code] && person.campus_code !== "CS" ? person.campus_code : "LV";
+  const location_code = CAMPUS_CODES[camp] ?? "01";
+  const location_name = CONFIG.campuses[camp]?.label ?? "Livermore";
+  const pastor = /pastor/i.test(person?.title ?? "") && /area|campus|site|lead|executive|operations/i.test(person?.title ?? "");
+  const own = MINISTRY_WORDS.find(([re]) => re.test(person?.title ?? ""))?.[1] ?? "Ministry";
+  const names = pastor ? SAMPLE_MINISTRIES : [own];
+  const budgets = names.map((name, i) => ({
+    budget_id: `demo-${email}-${i}`, budget_name: `${location_name} ${name}`, location_code, location_name,
+  }));
+  const access = budgets.map((b) => ({ email, budget_id: b.budget_id, access_type: pastor ? "supervisor" : "owner" }));
+  const lines = budgets.flatMap((b, i) => SAMPLE_LINES
+    .filter((_, j) => (hash(`${b.budget_id}|${j}`) % 5) !== 0 || j < 3)
+    .map(([account_code, account_name]) => ({
+      budget_id: b.budget_id, class_code: String(100 + i), class_name: names[i],
+      account_code, account_name, account_type: "Expense", annual: 0, monthly: Array(12).fill(0),
+    })));
+  const campus = pastor ? [["4000", "Tithes & Offerings"], ["4500", "Rental Income"]].map(([account_code, account_name]) =>
+    ({ location_code, location_name, account_code, account_name, annual: 0, monthly: Array(12).fill(0), received: Array(12).fill(0), note: null })) : [];
+  const fake = demoData({ load: d.load, budgets, access, lines, txns: [], notes: [], campus });
+  fake.txns.forEach((t) => { t.id = `s${t.id}`; });
+  return {
+    ...d,
+    budgets: [...d.budgets, ...budgets], access: [...d.access, ...access], lines: [...d.lines, ...fake.lines],
+    txns: [...d.txns, ...fake.txns], campus: [...d.campus.filter((c) => !pastor || c.location_code !== location_code), ...fake.campus],
+  };
+}
+
 /* ---------- numbers ---------- */
 // How many fiscal months the data reaches into (Sep = 1).
 function monthsIn(about) {
@@ -429,7 +478,7 @@ const noBudget = () => `${head()}<section class="dcard bg-empty"><h2>${esc(L.non
 let ticket = 0;
 let range = null;   // { from, to } once someone changes it; null is year to date
 
-export async function mountBudget(el, { sub, signedInEmail, viewingAsEmail }) {
+export async function mountBudget(el, { sub, signedInEmail, viewingAsEmail, person }) {
   const mine = ++ticket;
   el.innerHTML = `${head()}<section class="dcard"><p class="bg-loading">${esc(L.loading)}</p></section>`;
   let d;
@@ -441,6 +490,7 @@ export async function mountBudget(el, { sub, signedInEmail, viewingAsEmail }) {
     return;
   }
   if (mine !== ticket) return;
+  d = withSample(d, (viewingAsEmail ?? signedInEmail)?.toLowerCase(), person);
 
   // An admin viewing as someone: narrow to that person's rows on screen.
   const view = viewingAsEmail?.toLowerCase() ?? null;

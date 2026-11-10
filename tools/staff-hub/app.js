@@ -1345,7 +1345,8 @@ function route() {
   document.title = `${section ? section.title + " · " : ""}Staff Hub | Cornerstone Fellowship`;
   if (section?.layout === "budget") {
     $("search").placeholder = CONFIG.labels.searchPlaceholder;
-    mountBudget($("view"), { sub, signedInEmail, viewingAsEmail: viewingAs?.email });
+    mountBudget($("view"), { sub, signedInEmail, viewingAsEmail: viewingAs?.email,
+      person: viewingAs ?? STAFF.find((p) => p.email?.toLowerCase() === signedInEmail.toLowerCase()) });
   }
   if (section?.layout === "brand") wireSwatches();
   if (section?.layout === "directory") wireDirectory();
