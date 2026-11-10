@@ -164,7 +164,9 @@ function withSample(d, email, person, extra = false) {
   const own = MINISTRY_WORDS.find(([re]) => re.test(person?.title ?? ""))?.[1] ?? "Ministry";
   const names = pastor ? SAMPLE_MINISTRIES : [own];
   const budgets = names.map((name, i) => ({
-    budget_id: `demo-${location_code}-${name.toLowerCase().replace(/[^a-z]+/g, "-")}`,   // same for everyone, so Ryan and Chris match budget_name: `${location_name} ${name}`, location_code, location_name,
+    // Same id for everyone, so Ryan and Chris see matching numbers.
+    budget_id: `demo-${location_code}-${name.toLowerCase().replace(/[^a-z]+/g, "-")}`,
+    budget_name: `${location_name} ${name}`, location_code, location_name,
   }));
   const access = budgets.map((b) => ({ email, budget_id: b.budget_id, access_type: pastor ? "supervisor" : "owner" }));
   const lines = budgets.flatMap((b, i) => SAMPLE_LINES
