@@ -64,7 +64,7 @@ export const CONFIG = {
 
   labels: {
     title: "Facilities",
-    sub: "Report a repair or a key and access issue, then follow it to done.",
+    sub: "Report a repair or building issue, then follow it to done.",
     demoTag: "Demo",
     demoNote: "Mockup with made-up requests. Nothing you do here is saved anywhere but this browser.",
     demoViewing: "Viewing as",

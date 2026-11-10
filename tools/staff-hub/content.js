@@ -184,7 +184,7 @@ export const CONTENT = {
         },
         {
           title: "Facilities", icon: "wrench",
-          body: "Repairs, building issues, keys and access.",
+          body: "Repairs and building issues.",
           owner: "Joe",
           reviewed: null,
           // Points at the Facilities mockup (demo data) while Ryan and Joe review it.
