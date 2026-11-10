@@ -1222,3 +1222,12 @@ body.is-viewing-as .main { padding-bottom: 76px; }
 .bg-big .bg-bar { margin-top: 10px; }
 .bg-big small { margin-top: 6px; font-size: .78rem; color: var(--faint); }
 @media (max-width: 760px) { .bg-bigs { grid-template-columns: minmax(0, 1fr); } }
+
+/* Demo pill (Nov 10): centered at the bottom and a bit bigger. It sits above
+   the "Viewing as" bar when that is showing. */
+.preview-badge { left: 50%; bottom: 16px; transform: translateX(-50%); padding: 9px 20px; font-size: .9rem; white-space: nowrap; }
+body.is-viewing-as .preview-badge { bottom: 78px; }
+@media (max-width: 620px) {
+  .preview-badge { font-size: .8rem; padding: 8px 16px; }
+  body.is-viewing-as .preview-badge { bottom: 92px; }
+}
