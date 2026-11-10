@@ -134,8 +134,22 @@ const MINISTRY_WORDS = [
 ];
 const CAMPUS_CODES = { LV: "01", BW: "02", WC: "03", SRV: "04", HW: "05", ON: "06", CS: "01" };
 
-function withSample(d, email, person) {
-  if (!DEMO || !email || !d.load || d.access.some((a) => a.email === email)) return d;
+// Church-wide leaders (lead and executive pastor) who already supervise the
+// real budgets also get sample budgets for every campus that has none yet,
+// so the roll-up shows the whole church.
+function withCampuses(d, email) {
+  const have = new Set(d.budgets.map((b) => b.location_code));
+  const add = Object.entries(CONFIG.campuses).filter(([k]) => k !== "CS" && !have.has(CAMPUS_CODES[k]));
+  let out = d;
+  for (const [k] of add) out = withSample(out, email, { campus_code: k, title: "Area Pastor" }, true);
+  return out;
+}
+
+function withSample(d, email, person, extra = false) {
+  if (!DEMO || !email || !d.load) return d;
+  if (!extra && d.access.some((a) => a.email === email)) {
+    return /lead pastor|executive pastor/i.test(person?.title ?? "") ? withCampuses(d, email) : d;
+  }
   const camp = person?.campus_code && CONFIG.campuses[person.campus_code] && person.campus_code !== "CS" ? person.campus_code : "LV";
   const location_code = CAMPUS_CODES[camp] ?? "01";
   const location_name = CONFIG.campuses[camp]?.label ?? "Livermore";
@@ -143,7 +157,7 @@ function withSample(d, email, person) {
   const own = MINISTRY_WORDS.find(([re]) => re.test(person?.title ?? ""))?.[1] ?? "Ministry";
   const names = pastor ? SAMPLE_MINISTRIES : [own];
   const budgets = names.map((name, i) => ({
-    budget_id: `demo-${email}-${i}`, budget_name: `${location_name} ${name}`, location_code, location_name,
+    budget_id: `demo-${location_code}-${email}-${i}`, budget_name: `${location_name} ${name}`, location_code, location_name,
   }));
   const access = budgets.map((b) => ({ email, budget_id: b.budget_id, access_type: pastor ? "supervisor" : "owner" }));
   const lines = budgets.flatMap((b, i) => SAMPLE_LINES
@@ -264,6 +278,32 @@ function progressBar({ budget, spent, planned, label }) {
 
 // Monthly totals only. Received is compared to plan through the last full
 // month, because a partial month against a full month's plan looks behind.
+// Giving for a set of campus income rows, compared through the last full
+// month (same rule as the Campus income card).
+function givingFor(rows, d) {
+  const through = dateOf(d.load.through_date);
+  const monthEnded = new Date(through.getFullYear(), through.getMonth(), through.getDate() + 1).getDate() === 1;
+  const full = monthsIn(d.load) - (monthEnded ? 0 : 1);
+  const months = monthsList(d.load);
+  return {
+    got: sum(rows, (r) => r.received.slice(0, full).reduce((t, v) => t + Number(v), 0)),
+    plan: sum(rows, (r) => r.monthly.slice(0, full).reduce((t, v) => t + Number(v), 0)),
+    annual: sum(rows, (r) => r.annual),
+    label: full ? MON.format(months[full - 1].date) : "",
+  };
+}
+
+// A labeled small bar: full length is the year, fill is actual, tick is plan.
+// `overBad` turns the fill orange past the year (spending), not for giving.
+function labeledBar(kind, actual, plan, year, line, overBad) {
+  const scale = Math.max(year, actual, 1);
+  const at = (n) => `${Math.max(0, Math.min(100, (n / scale) * 100)).toFixed(1)}%`;
+  return `<div class="bg-lbar"><span class="bg-lbar-k">${esc(kind)}</span>
+      <span class="bg-mini${overBad ? "" : " bg-mini-in"}" role="img" aria-label="${esc(`${kind}: ${line}`)}">
+        <i class="${overBad && actual > year ? "is-over" : ""}" style="width:${at(actual)}"></i>${year > 0 ? `<u style="left:${at(plan)}"></u>` : ""}</span>
+      <small>${esc(line)}</small></div>`;
+}
+
 function campusIncome(rows, d) {
   if (!rows.length) return "";
   const through = dateOf(d.load.through_date);
@@ -452,9 +492,13 @@ function overview(budgets, access, d, email, campus) {
   const roll = counted.map((b) => totals(b.budget_id, d));
   const locations = [...new Map(budgets.map((b) => [b.location_code, b.location_name])).entries()]
     .sort((a, b) => a[0].localeCompare(b[0]));
-  return `${head(L.throughAll(LONG.format(dateOf(d.load.through_date))))}
-    ${campusIncome(campus, d)}
-    ${counted.length ? `<section class="dcard bg-summary"><div class="dcard-h"><h2>${esc(L.myMinistries)}</h2></div>
+  const many = locations.length > 1;
+  const give = givingFor(campus, d);
+  const spendLine = (p) => L.rollSpend(money(p.spent), money(p.planned), money(p.budget));
+  const giveLine = (g) => L.rollGive(money(g.got), g.label, money(g.plan), money(g.annual));
+
+  // Top: the whole picture, spending and giving.
+  const top = counted.length ? `<section class="dcard bg-summary"><div class="dcard-h"><h2>${esc(many ? L.allCampuses : L.myMinistries)}</h2></div>
       <div class="bg-stats">
         ${stat(L.remaining, money(sum(roll, (r) => r.remaining)), "", "is-main")}
         ${stat(L.budgetNet, money(sum(roll, (r) => r.net)))}
@@ -462,14 +506,36 @@ function overview(budgets, access, d, email, campus) {
         ${stat(L.received, money(sum(roll, (r) => r.received)))}
       </div>
       ${progressBar(progressFor(counted.map((b) => b.budget_id), d))}
-      <p class="bg-hint">${esc(L.myMinistriesNote)}</p></section>` : ""}
-    ${locations.map(([code, name]) => `<section class="dcard"><div class="dcard-h"><h2>${esc(name)}</h2></div>
-      <div class="bg-list">${budgets.filter((b) => b.location_code === code).map((b) => {
-        const t = totals(b.budget_id, d);
-        return `<a href="#/budget/${esc(b.budget_id)}"><b>${esc(b.budget_name)}</b>
-          <span>${esc(L.listLine(money(t.spent), money(t.net)))}</span>
-          <span class="bg-list-left">${t.remaining < 0 ? leftText(t.remaining) : esc(L.leftShort(money(t.remaining)))}</span></a>`;
-      }).join("")}</div></section>`).join("")}`;
+      ${campus.length ? `<div class="bg-roll-give">${labeledBar(L.giving, give.got, give.plan, give.annual, giveLine(give), false)}</div>` : ""}
+      <p class="bg-hint">${esc(L.myMinistriesNote)}</p></section>` : "";
+
+  // Then each campus: its spending and giving bars, and its budgets on tap.
+  const list = (code) => `<div class="bg-list">${budgets.filter((b) => b.location_code === code).map((b) => {
+      const t = totals(b.budget_id, d);
+      return `<a href="#/budget/${esc(b.budget_id)}"><b>${esc(b.budget_name)}</b>
+        <span>${esc(L.listLine(money(t.spent), money(t.net)))}</span>
+        <span class="bg-list-left">${t.remaining < 0 ? leftText(t.remaining) : esc(L.leftShort(money(t.remaining)))}</span></a>`;
+    }).join("")}</div>`;
+  const camps = locations.map(([code, name]) => {
+    const ids = budgets.filter((b) => b.location_code === code).map((b) => b.budget_id);
+    const n = ids.length;
+    if (!supervises) return `<section class="dcard"><div class="dcard-h"><h2>${esc(name)}</h2></div>${list(code)}</section>`;
+    const p = progressFor(ids, d);
+    const g = givingFor(campus.filter((c) => c.location_code === code), d);
+    return `<details class="dcard bg-camp"${many ? "" : " open"}>
+      <summary>
+        <span class="bg-camp-h"><b>${esc(name)}</b><small>${esc(L.campBudgets(n))}</small></span>
+        <span class="bg-camp-bars">
+          ${labeledBar(L.spending, p.spent, p.planned, p.budget, spendLine(p), true)}
+          ${g.annual ? labeledBar(L.giving, g.got, g.plan, g.annual, giveLine(g), false) : ""}
+        </span>
+      </summary>
+      ${list(code)}
+    </details>`;
+  }).join("");
+
+  return `${head(L.throughAll(LONG.format(dateOf(d.load.through_date))))}
+    ${top}${camps}${campusIncome(campus, d)}`;
 }
 
 const noBudget = () => `${head()}<section class="dcard bg-empty"><h2>${esc(L.noneTitle)}</h2><p>${esc(L.noneBody)}</p></section>`;

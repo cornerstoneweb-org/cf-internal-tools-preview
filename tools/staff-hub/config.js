@@ -174,6 +174,11 @@ export const CONFIG = {
       hint: "Tap a line to see what's in it.",
       openQuestion: "Open question:",
       myMinistries: "My ministries",
+      allCampuses: "All campuses",
+      giving: "Giving",
+      campBudgets: (n) => `${n} ${n === 1 ? "budget" : "budgets"} · tap to see them`,
+      rollSpend: (s, p, b) => `${s} spent · ${p} planned so far · ${b} for the year`,
+      rollGive: (g, m, p, y) => `${g} received${m ? ` through ${m}` : ""} · ${p} planned · ${y} for the year`,
       myMinistriesNote: "This adds up your ministries only. It won't match the campus report, which also has staff, building costs and giving.",
     },
 
