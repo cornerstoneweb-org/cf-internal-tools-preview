@@ -1321,7 +1321,7 @@ function route() {
   if (id === "facilities" && FACILITIES_ON) {
     renderNav("requests");
     $("search").placeholder = CONFIG.labels.searchPlaceholder;
-    mountFacilities($("view"), { userName: firstName, toast });
+    mountFacilities($("view"), { userName: firstName, toast, followHub: true });
     return;
   }
 

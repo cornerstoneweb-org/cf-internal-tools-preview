@@ -140,7 +140,9 @@ function go(hash) {
 
 /* ================= shell ================= */
 function demoBar() {
-  if (!CONFIG.demo) return "";
+  // Inside the hub (Nov 10) the person comes from the hub's own sign-in or
+  // "View as", so the demo's role switcher is not shown.
+  if (!CONFIG.demo || ctx.followHub) return "";
   const btns = CONFIG.viewers.map((v) =>
     `<button type="button" class="fx-viewer${v.id === state.viewer ? " is-on" : ""}" data-viewer="${esc(v.id)}"
       aria-pressed="${v.id === state.viewer}" title="${esc(v.note)}">${esc(v.label)}</button>`).join("");
@@ -726,6 +728,15 @@ function render() {
 export function mountFacilities(el, context = {}) {
   mountEl = el;
   ctx = { ...ctx, ...context };
+  if (ctx.followHub) {
+    // Joe, Eric and Ryan get their facilities role; everyone else is staff.
+    const first = String(ctx.userName ?? "").toLowerCase();
+    const role = CONFIG.viewers.find((v) => v.id !== "staff" && v.label.toLowerCase() === first)?.id ?? "staff";
+    if (role !== state.viewer) {
+      state.viewer = role;
+      state.filters.who = role === "eric" ? "eric" : "all";
+    }
+  }
   wire();
   render();
 }
