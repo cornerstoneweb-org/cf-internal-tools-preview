@@ -537,7 +537,9 @@ function overview(budgets, access, d, email, campus) {
   }).join("");
 
   return `${head(L.throughAll(LONG.format(dateOf(d.load.through_date))))}
-    ${top}${camps}${campusIncome(campus, d)}`;
+    ${top}${camps}`;
+  // The Campus income card (by account) was dropped here on Nov 10: each
+  // campus card now carries its own giving bar. campusIncome() is kept.
 }
 
 const noBudget = () => `${head()}<section class="dcard bg-empty"><h2>${esc(L.noneTitle)}</h2><p>${esc(L.noneBody)}</p></section>`;
