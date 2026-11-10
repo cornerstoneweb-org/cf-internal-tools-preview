@@ -78,8 +78,8 @@ export const CONFIG = {
     tellName: (n) => `Tell ${n}`,
 
     // Corner badge on the preview site (PREVIEW_HOSTS in site.config.js)
-    previewBadge: "Demo site · all numbers are fake",
-    previewBadgeNote: "Preview and demo site. Budget amounts and transactions are made up. Not what staff see.",
+    previewBadge: "Demo site · placeholder numbers",
+    previewBadgeNote: "Preview and demo site. Budget amounts and transactions are placeholders. Not what staff see.",
 
     // Staff directory
     dirSearch: "Search by name or role",

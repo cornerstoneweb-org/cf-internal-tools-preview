@@ -99,7 +99,7 @@ function demoData(d) {
         id: id++, budget_id: l.budget_id, kind, amount, class_code: l.class_code, class_name: l.class_name,
         account_code: l.account_code, account_name: l.account_name,
         txn_date: `${months[m].key}-${String(Math.max(1, day - i * 7)).padStart(2, "0")}`,
-        payee_display: pick(PAYEES, `${key}|${m}|${i}`), memo_display: "Demo transaction, not real", pending_review: false,
+        payee_display: pick(PAYEES, `${key}|${m}|${i}`), memo_display: "Placeholder transaction", pending_review: false,
       }));
     }
   }
