@@ -139,7 +139,9 @@ const CAMPUS_CODES = { LV: "01", BW: "02", WC: "03", SRV: "04", HW: "05", ON: "0
 // so the roll-up shows the whole church.
 function withCampuses(d, email) {
   const have = new Set(d.budgets.map((b) => b.location_code));
-  const add = Object.entries(CONFIG.campuses).filter(([k]) => k !== "CS" && !have.has(CAMPUS_CODES[k]));
+  // San Ramon Valley merged into Livermore (June 2026) and Hayward is a campus
+  // in name only, so neither gets demo budgets.
+  const add = Object.entries(CONFIG.campuses).filter(([k]) => !["CS", "SRV", "HW"].includes(k) && !have.has(CAMPUS_CODES[k]));
   let out = d;
   for (const [k] of add) out = withSample(out, email, { campus_code: k, title: "Area Pastor" }, true);
   return out;
@@ -150,7 +152,7 @@ function withSample(d, email, person, extra = false) {
   if (!extra && d.access.some((a) => a.email === email)) {
     return /lead pastor|executive pastor/i.test(person?.title ?? "") ? withCampuses(d, email) : d;
   }
-  const camp = person?.campus_code && CONFIG.campuses[person.campus_code] && person.campus_code !== "CS" ? person.campus_code : "LV";
+  const camp = person?.campus_code && CONFIG.campuses[person.campus_code] && !["CS", "SRV", "HW"].includes(person.campus_code) ? person.campus_code : "LV";
   const location_code = CAMPUS_CODES[camp] ?? "01";
   const location_name = CONFIG.campuses[camp]?.label ?? "Livermore";
   const pastor = /pastor/i.test(person?.title ?? "") && /area|campus|site|lead|executive|operations/i.test(person?.title ?? "");
