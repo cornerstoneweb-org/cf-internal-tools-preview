@@ -1209,3 +1209,16 @@ body.is-viewing-as .main { padding-bottom: 76px; }
   .bg-camp > summary { grid-template-columns: minmax(0, 1fr); padding: 14px 16px; }
   .bg-camp > .bg-list { padding-left: 12px; }
 }
+
+/* "All Cornerstone" (Nov 10): giving and spending, actual vs planned. */
+.bg-bigs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 28px; }
+.bg-big { display: grid; gap: 4px; min-width: 0; }
+.bg-big-k { font-size: .82rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--faint); }
+.bg-big > b { font-size: 1.9rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.bg-big-sub { font-size: .92rem; color: var(--slate); }
+.bg-big-sub em { font-style: normal; font-weight: 600; margin-left: 6px; }
+.bg-big-sub em.is-ahead { color: var(--teal-d); }
+.bg-big-sub em.is-behind { color: var(--orange-d); }
+.bg-big .bg-bar { margin-top: 10px; }
+.bg-big small { margin-top: 6px; font-size: .78rem; color: var(--faint); }
+@media (max-width: 760px) { .bg-bigs { grid-template-columns: minmax(0, 1fr); } }

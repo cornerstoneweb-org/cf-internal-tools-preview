@@ -499,8 +499,28 @@ function overview(budgets, access, d, email, campus) {
   const spendLine = (p) => L.rollSpend(money(p.spent), money(p.planned), money(p.budget));
   const giveLine = (g) => L.rollGive(money(g.got), g.label, money(g.plan), money(g.annual));
 
-  // Top: the whole picture, spending and giving.
-  const top = counted.length ? `<section class="dcard bg-summary"><div class="dcard-h"><h2>${esc(many ? L.allCampuses : L.myMinistries)}</h2></div>
+  // Top for church-wide leaders (Nov 10, Ryan): just two answers. Giving
+  // actual vs planned, spending actual vs planned, each with its bar.
+  const pAll = progressFor(counted.map((b) => b.budget_id), d);
+  const big = (kind, actual, plan, year, goodWhenOver, note) => {
+    const diff = actual - plan;
+    const good = goodWhenOver ? diff >= 0 : diff <= 0;
+    const scale = Math.max(year, actual, 1);
+    const at = (n) => `${Math.max(0, Math.min(100, (n / scale) * 100)).toFixed(1)}%`;
+    return `<div class="bg-big">
+        <span class="bg-big-k">${esc(kind)}</span>
+        <b>${esc(money(actual))}</b>
+        <span class="bg-big-sub">${esc(L.bigPlanned(money(plan)))} <em class="${good ? "is-ahead" : "is-behind"}">${esc(L.bigDiff(money(Math.abs(diff)), diff >= 0, goodWhenOver))}</em></span>
+        <div class="bg-bar"><i class="${!goodWhenOver && actual > year ? "is-over" : ""}" style="width:${at(actual)}"></i><u style="left:${at(plan)}"></u></div>
+        <small>${esc(note)}</small>
+      </div>`;
+  };
+  const top = many && counted.length ? `<section class="dcard bg-summary"><div class="dcard-h"><h2>${esc(L.allCornerstone)}</h2></div>
+      <div class="bg-bigs">
+        ${campus.length ? big(L.giving, give.got, give.plan, give.annual, true, L.bigGiveNote(give.label, money(give.annual))) : ""}
+        ${big(L.spending, pAll.spent, pAll.planned, pAll.budget, false, L.bigSpendNote(pAll.label, money(pAll.budget)))}
+      </div></section>`
+    : counted.length ? `<section class="dcard bg-summary"><div class="dcard-h"><h2>${esc(many ? L.allCampuses : L.myMinistries)}</h2></div>
       <div class="bg-stats">
         ${stat(L.remaining, money(sum(roll, (r) => r.remaining)), "", "is-main")}
         ${stat(L.budgetNet, money(sum(roll, (r) => r.net)))}
