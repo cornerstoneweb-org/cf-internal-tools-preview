@@ -1345,7 +1345,7 @@ function route() {
   document.title = `${section ? section.title + " · " : ""}Staff Hub | Cornerstone Fellowship`;
   if (section?.layout === "budget") {
     $("search").placeholder = CONFIG.labels.searchPlaceholder;
-    mountBudget($("view"), { sub, signedInEmail, viewingAsEmail: viewingAs?.email,
+    mountBudget($("view"), { sub, signedInEmail, viewingAsEmail: viewingAs?.email, isAdmin: hubAdmin,
       person: viewingAs ?? STAFF.find((p) => p.email?.toLowerCase() === signedInEmail.toLowerCase()) });
   }
   if (section?.layout === "brand") wireSwatches();
@@ -1451,6 +1451,7 @@ function firstNameOf(session) {
 }
 
 let signedInEmail = "";
+let hubAdmin = false;   // from the database's my_roles; only changes what the page lays out
 function renderMe(session) {
   signedInEmail = session.user.email ?? "";
   // Microsoft's name loses to the roster only when someone has a preferred name.
@@ -1588,6 +1589,7 @@ async function start() {
   loadStaff(staff);
   // Only an admin can be viewing as someone. Anyone else loses the leftover.
   const isAdmin = roles.includes("admin");
+  hubAdmin = isAdmin;
   const wanted = rememberedViewAs()?.toLowerCase();
   viewingAs = (isAdmin && wanted && STAFF.find((p) => p.email.toLowerCase() === wanted)) || null;
   if (!viewingAs) forgetViewAs();

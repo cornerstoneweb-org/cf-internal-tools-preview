@@ -23,6 +23,16 @@ the access list; the hub only displays them. Numbers live only in Supabase
    then run `private.budget_replace` on the joined text and delete the pieces.
 5. Check one budget against Finance's PDF.
 
+## Who sees what (Nov 17, 2026)
+
+- `budgets.visibility = 'ryan_chris'` (Central Services, Online) is checked
+  before any access row: only admins and the private `budgets_all` role
+  (Chris) can read those budgets, their rows, or their access rows.
+- Everyone else follows their access rows. Area pastors supervise every
+  Ministry Budget at their campus and see that campus's giving.
+- Lines and transactions match on location + class + account; Central budgets
+  repeat a class and account across 9X locations.
+
 ## Campus income
 
 `budget_campus_income` holds monthly totals, never gifts or donors. Only

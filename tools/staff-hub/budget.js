@@ -230,14 +230,16 @@ function totals(budgetId, d) {
   return { expense, income, net: expense - income, spent, received, planned, remaining: expense - income + received - spent };
 }
 
-// One entry per class + account, including spending with no budget line. The
-// PDF shows those with a $0 budget, and so does this.
+// One entry per location + class + account, including spending with no budget
+// line. The PDF shows those with a $0 budget, and so does this. Central budgets
+// (IT, Facilities, Cornerstone Central) have the same class and account at
+// several 9X locations, so location is part of the match (Finance, Nov 17).
 function accounts(budgetId, kind, d) {
   const type = kind === "expense" ? "Expense" : "Income";
   const map = new Map();
   const entry = (r) => {
-    const key = `${r.class_code}|${r.account_code}`;
-    if (!map.has(key)) map.set(key, { class_code: r.class_code, account_code: r.account_code, account_name: r.account_name,
+    const key = `${r.location_code ?? ""}|${r.class_code}|${r.account_code}`;
+    if (!map.has(key)) map.set(key, { location_code: r.location_code ?? null, class_code: r.class_code, account_code: r.account_code, account_name: r.account_name,
       class_name: r.class_name ?? null, annual: 0, monthly: Array(12).fill(0), txns: [], unplanned: true });
     return map.get(key);
   };
@@ -252,7 +254,7 @@ function accounts(budgetId, kind, d) {
   const names = new Map(d.lines.filter((x) => x.budget_id === budgetId).map((l) => [l.class_code, l.class_name]));
   return [...map.values()]
     .map((a) => ({ ...a, class_name: a.class_name ?? names.get(a.class_code) ?? a.class_code }))
-    .sort((a, b) => a.class_code.localeCompare(b.class_code) || a.account_code.localeCompare(b.account_code));
+    .sort((a, b) => String(a.location_code ?? "").localeCompare(String(b.location_code ?? "")) || a.class_code.localeCompare(b.class_code) || a.account_code.localeCompare(b.account_code));
 }
 
 // Spending against plan up to the end of a fiscal month, for the progress bar.
@@ -443,10 +445,12 @@ function columns(kind, period) {
 }
 
 function classGroups(list, period) {
-  const classes = [...new Set(list.map((a) => a.class_code))];
+  const several = new Set(list.map((a) => a.location_code)).size > 1;
+  const groupOf = (a) => `${a.location_code ?? ""}|${a.class_code}`;
+  const classes = [...new Set(list.map(groupOf))];
   return classes.map((c) => {
-    const inClass = list.filter((a) => a.class_code === c);
-    const name = inClass[0].class_name;
+    const inClass = list.filter((a) => groupOf(a) === c);
+    const name = several ? L.atLocation(inClass[0].class_name, inClass[0].location_code) : inClass[0].class_name;
     const spent = sum(inClass.flatMap((a) => a.txns).filter((t) => inPeriod(t, period)), (t) => t.amount);
     return `<section class="bg-class"><h3><span>${esc(name)}</span><small>${esc(L.spentShort(money(spent)))}</small></h3>
       ${inClass.map((a) => accountRow(a, period, "expense")).join("")}</section>`;
@@ -497,15 +501,23 @@ function detail(budget, d, period, multi) {
     </section>` : ""}`;
 }
 
-function overview(budgets, access, d, email, campus, churchWide = false) {
+function overview(allBudgets, access, d, email, campus, churchWide = false, admin = false) {
+  // Central Services and Online (visibility ryan_chris) never count with the
+  // campus ministries; they get their own group below (Finance, Nov 17).
+  const restricted = allBudgets.filter((b) => b.visibility === "ryan_chris");
+  const budgets = allBudgets.filter((b) => b.visibility !== "ryan_chris");
+  const restrictedCodes = new Set(restricted.map((b) => b.location_code).filter((c) => !budgets.some((b) => b.location_code === c)));
   // Finance's rule: one supervisor row earns a roll-up, and it then adds every
   // budget they own or supervise. Viewer rows show in the list but never count.
   const mine = access.filter((a) => a.email === email && a.access_type !== "viewer");
-  const supervises = mine.some((a) => a.access_type === "supervisor");
-  const counted = supervises ? budgets.filter((b) => mine.some((a) => a.budget_id === b.budget_id)) : [];
+  const supervises = admin || mine.some((a) => a.access_type === "supervisor");
+  const counted = !supervises ? [] : admin ? budgets : budgets.filter((b) => mine.some((a) => a.budget_id === b.budget_id));
   const roll = counted.map((b) => totals(b.budget_id, d));
   const locations = [...new Map(budgets.map((b) => [b.location_code, b.location_name])).entries()]
     .sort((a, b) => a[0].localeCompare(b[0]));
+  churchWide ||= admin;
+  const otherCampus = campus.filter((c) => restrictedCodes.has(c.location_code));
+  campus = campus.filter((c) => !restrictedCodes.has(c.location_code));
   // Church-wide leaders always get the All Cornerstone layout, even while only
   // one campus has data loaded.
   const many = locations.length > 1 || churchWide;
@@ -545,19 +557,19 @@ function overview(budgets, access, d, email, campus, churchWide = false) {
       <p class="bg-hint">${esc(L.myMinistriesNote)}</p></section>` : "";
 
   // Then each campus: its spending and giving bars, and its budgets on tap.
-  const list = (code) => `<div class="bg-list">${budgets.filter((b) => b.location_code === code).map((b) => {
+  const list = (code, pool = budgets) => `<div class="bg-list">${pool.filter((b) => b.location_code === code).map((b) => {
       const t = totals(b.budget_id, d);
       return `<a href="#/budget/${esc(b.budget_id)}"><b>${esc(b.budget_name)}</b>
         <span>${esc(L.listLine(money(t.spent), money(t.net)))}</span>
         <span class="bg-list-left">${t.remaining < 0 ? leftText(t.remaining) : esc(L.leftShort(money(t.remaining)))}</span></a>`;
     }).join("")}</div>`;
-  const camps = locations.map(([code, name]) => {
-    const ids = budgets.filter((b) => b.location_code === code).map((b) => b.budget_id);
+  const campCard = (code, name, pool, givingRows) => {
+    const ids = pool.filter((b) => b.location_code === code).map((b) => b.budget_id);
     const n = ids.length;
     // One-campus views (area pastors, owners) stay as they were: a plain list.
     if (!supervises || !many) return `<section class="dcard"><div class="dcard-h"><h2>${esc(name)}</h2></div>${list(code)}</section>`;
     const p = progressFor(ids, d);
-    const g = givingFor(campus.filter((c) => c.location_code === code), d);
+    const g = givingFor(givingRows.filter((c) => c.location_code === code), d);
     return `<details class="dcard bg-camp"${many ? "" : " open"}>
       <summary>
         <span class="bg-camp-h"><b>${esc(name)}</b><small>${esc(L.campBudgets(n))}</small></span>
@@ -566,12 +578,24 @@ function overview(budgets, access, d, email, campus, churchWide = false) {
           ${g.annual ? labeledBar(L.giving, g.got, g.plan, g.annual, giveLine(g), false) : ""}
         </span>
       </summary>
-      ${list(code)}
+      ${list(code, pool)}
     </details>`;
-  }).join("");
+  };
+  const camps = locations.map(([code, name]) => campCard(code, name, budgets, campus)).join("");
+
+  // Central Services and Online: their own heading and cards, same layout.
+  const restrictedPlaces = [...new Map(restricted.map((b) => [b.location_code, b.location_name])).entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]));
+  const rp = progressFor(restricted.map((b) => b.budget_id), d);
+  const apart = restricted.length ? `<h2 class="bg-group-h">${esc(L.ryanChrisHeading)}</h2>
+    <p class="bg-hint bg-group-sub">${esc(L.ryanChrisNote)}</p>
+    <section class="dcard bg-summary"><div class="bg-bigs">
+      ${big(L.spending, rp.spent, rp.planned, rp.budget, false, L.bigSpendNote(rp.label, money(rp.budget)))}
+    </div></section>
+    ${restrictedPlaces.map(([code, name]) => campCard(code, name, restricted, otherCampus)).join("")}` : "";
 
   return `${head(L.throughAll(LONG.format(dateOf(d.load.through_date))))}
-    ${many ? "" : campusIncome(campus, d)}${top}${camps}`;
+    ${many ? "" : campusIncome(campus, d)}${top}${camps}${apart}`;
   // Church-wide (many campuses): no Campus income card, since each campus card
   // carries its own giving bar. One campus: the earlier layout, unchanged.
 }
@@ -582,7 +606,7 @@ const noBudget = () => `${head()}<section class="dcard bg-empty"><h2>${esc(L.non
 let ticket = 0;
 let range = null;   // { from, to } once someone changes it; null is year to date
 
-export async function mountBudget(el, { sub, signedInEmail, viewingAsEmail, person }) {
+export async function mountBudget(el, { sub, signedInEmail, viewingAsEmail, person, isAdmin = false }) {
   const mine = ++ticket;
   el.innerHTML = `${head()}<section class="dcard"><p class="bg-loading">${esc(L.loading)}</p></section>`;
   let d;
@@ -610,7 +634,7 @@ export async function mountBudget(el, { sub, signedInEmail, viewingAsEmail, pers
     .map((a) => d.budgets.find((b) => b.budget_id === a.budget_id)?.location_code));
   const campus = view ? d.campus.filter((c) => supervised.has(c.location_code)) : d.campus;
   const picked = budgets.find((b) => b.budget_id === sub) ?? (budgets.length === 1 && !supervised.size ? budgets[0] : null);
-  if (!picked) { el.innerHTML = overview(budgets, d.access, d, email, campus, /lead pastor|executive pastor/i.test(person?.title ?? "")); return; }
+  if (!picked) { el.innerHTML = overview(budgets, d.access, d, email, campus, /lead pastor|executive pastor/i.test(person?.title ?? ""), isAdmin && !view); return; }
 
   const draw = () => {
     const last = Math.min(monthsIn(d.load), 12) - 1;

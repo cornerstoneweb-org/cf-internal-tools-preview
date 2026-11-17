@@ -1232,3 +1232,6 @@ body.is-viewing-as .preview-badge { bottom: 78px; }
   body.is-viewing-as .preview-badge { bottom: 92px; }
 }
 .preview-badge.is-local { background: var(--jungle); color: #fff; }
+/* Central Services and Online: their own group under the campuses (Nov 17). */
+.bg-group-h { margin: 28px 0 4px; font-size: 1.15rem; font-weight: 700; color: var(--ink); }
+.bg-group-sub { margin: 0 0 12px; }

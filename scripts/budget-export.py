@@ -39,22 +39,42 @@ def main():
         if name not in wb.sheetnames:
             sys.exit(f"Missing sheet: {name}")
     months = [f"m{n:02d}" for n in range(1, 13)]
+    # Names go once per code; a row repeats its name only where a code has more
+    # than one spelling in the file.
+    txns = sheet(wb, "Transactions")
+    spellings = {}
+    for r in sheet(wb, "Budget_Lines") + txns:
+        spellings.setdefault(("c", text(r["class_code"])), set()).add(text(r["class_name"]))
+        spellings.setdefault(("a", text(r["account_code"])), set()).add(text(r["account_name"]))
+    one = {k: next(iter(v)) for k, v in spellings.items() if len(v) == 1}
+    class_names = {k[1]: v for k, v in one.items() if k[0] == "c"}
+    account_names = {k[1]: v for k, v in one.items() if k[0] == "a"}
+    txn_rows = []
+    for r in txns:
+        c, a = text(r["class_code"]), text(r["account_code"])
+        posted = text(r["posted_account"])
+        txn_rows.append([text(r["budget_id"]), text(r.get("location_code")), text(r["date"]), c, a,
+                         None if posted == a else posted, "e" if r["kind"] == "expense" else "i", num(r["amount"]),
+                         # Finance's rule: anyone not on its cleared list shows generically.
+                         text(r["payee_display"]) or ("Individual" if r["kind"] == "income" else "Reimbursement"),
+                         text(r["memo_display"]), 1 if text(r["pending_review"]) == "yes" else 0,
+                         None if c in class_names else text(r["class_name"]),
+                         None if a in account_names else text(r["account_name"])])
+        while txn_rows[-1][-1] is None:   # trailing blanks: the loader reads missing as null
+            txn_rows[-1].pop()
     payload = {
         "aliases": aliases,
+        "class_names": class_names,
+        "account_names": account_names,
         "about": {r["field"]: text(r["value"]) for r in sheet(wb, "About")},
-        "budgets": [{k: text(r[k]) for k in ("budget_id", "budget_name", "location_code", "location_name", "owner_name")}
+        "budgets": [{k: text(r.get(k)) for k in ("budget_id", "budget_name", "location_code", "location_name", "owner_name", "visibility")}
                     for r in sheet(wb, "Budgets")],
         "access": [{k: text(r[k]) for k in ("person_name", "budget_id", "access_type")} for r in sheet(wb, "Access")],
         # Plain rows: order must match private.budget_replace.
-        "lines": [[text(r[k]) for k in ("budget_id", "class_code", "class_name", "account_code", "account_name", "account_type")]
+        "lines": [[text(r[k]) for k in ("budget_id", "location_code", "class_code", "class_name", "account_code", "account_name", "account_type")]
                   + [num(r["annual"]), [num(r[m]) for m in months]]
                   for r in sheet(wb, "Budget_Lines")],
-        "transactions": [[text(r["budget_id"]), text(r["date"]), text(r["class_code"]), text(r["class_name"]),
-                          text(r["account_code"]), text(r["account_name"]), text(r["posted_account"]), r["kind"], num(r["amount"]),
-                          # Finance's rule: anyone not on its cleared list shows generically.
-                          text(r["payee_display"]) or ("Individual" if r["kind"] == "income" else "Reimbursement"),
-                          text(r["memo_display"]), text(r["pending_review"]) == "yes"]
-                         for r in sheet(wb, "Transactions")],
+        "transactions": txn_rows,
         "notes": [{k: text(r[k]) for k in ("budget_id", "note")} for r in sheet(wb, "Notes")],
         "campus": [[text(r[k]) for k in ("location_code", "location_name", "account_code", "account_name")]
                    + [num(r["annual"]), [num(r[m]) for m in months],

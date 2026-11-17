@@ -23,3 +23,10 @@
 -- budget_campus_income, tested 2026-11-05 the same way: the two location
 -- supervisors and the admin see it; owners, viewers, staff with no budget and
 -- a non-CF account get nothing; anon is denied. Security advisor: nothing new.
+--
+-- Nov 17, 2026 (migration 0012): visibility 'ryan_chris' checked first. Tested
+-- for every active roster person after the 40-budget load: area pastors see
+-- their campus (8 to 11 budgets) and its giving only; owners see their own;
+-- Central owners and everyone else see nothing; only Chris (budgets_all) and
+-- Ryan (admin) see the 11 Central and Online budgets and all campus giving;
+-- anon is denied. Security advisor: nothing new.
