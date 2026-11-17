@@ -30,6 +30,9 @@ the access list; the hub only displays them. Numbers live only in Supabase
   (Chris) can read those budgets, their rows, or their access rows.
 - Everyone else follows their access rows. Area pastors supervise every
   Ministry Budget at their campus and see that campus's giving.
+- `private.budget_access_holds` pauses someone's access to a budget even
+  when Finance's file lists them; each load drops held rows. Remove the hold
+  row to give access back.
 - Lines and transactions match on location + class + account; Central budgets
   repeat a class and account across 9X locations.
 
