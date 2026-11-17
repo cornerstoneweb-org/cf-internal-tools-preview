@@ -79,6 +79,7 @@ export const CONFIG = {
 
     // Corner badge on the preview site (PREVIEW_HOSTS in site.config.js)
     previewBadge: "Demo site · placeholder numbers",
+    localBadge: "Local copy · real numbers",
     previewBadgeNote: "Preview and demo site. Budget amounts and transactions are placeholders. Not what staff see.",
 
     // Staff directory

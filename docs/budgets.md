@@ -31,8 +31,8 @@ ministries on the roll-up. It is compared to plan through the last full month.
 
 ## Rules
 
-- `previewOnly` in content.js keeps the page off the live site until Ryan says
-  "ship it". The database still holds the data; RLS is the lock.
+- The Budget page went live on Nov 17, 2026. `previewOnly: true` on a section in
+  content.js hides it on live; RLS is the lock either way.
 - "View as" narrows budgets on screen for an admin. It is a preview of the
   page, not a test of RLS. Test RLS as in `db/policies/budgets.sql`.
 - Formulas match the check-in PDF. Don't work out new ones here.

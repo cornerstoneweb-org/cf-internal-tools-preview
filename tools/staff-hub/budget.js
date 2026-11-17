@@ -48,7 +48,9 @@ const KEYS = {
 // view, but every amount is a made-up round number and every transaction is
 // a sample. Real transactions and notes are not even fetched. Nothing is
 // written back: live reads the same database untouched.
-export const DEMO = ["localhost", "127.0.0.1", ...PREVIEW_HOSTS].includes(location.hostname);
+// Nov 10 (Ryan): localhost shows real numbers for design work; only the
+// hosted preview site stays on placeholders.
+export const DEMO = PREVIEW_HOSTS.includes(location.hostname);
 
 let cache = null;   // one fetch per page load; a new file means a refresh
 function load() {
@@ -148,14 +150,17 @@ function withCampuses(d, email) {
 }
 
 function withSample(d, email, person, extra = false) {
-  if (!DEMO || !email || !d.load) return d;
+  if (!email || !d.load) return d;
   // Lead and executive pastor see the whole church, like Chris: supervisor of
-  // every budget they can read, plus sample budgets for campuses not loaded.
+  // every budget they can read (real data too, so Ryan's view matches Chris's).
+  // On the demo site they also get sample budgets for campuses not loaded.
   if (!extra && /lead pastor|executive pastor/i.test(person?.title ?? "")) {
     const add = d.budgets.filter((b) => !d.access.some((a) => a.email === email && a.budget_id === b.budget_id))
       .map((b) => ({ email, budget_id: b.budget_id, access_type: "supervisor" }));
-    return withCampuses({ ...d, access: [...d.access, ...add] }, email);
+    const out = { ...d, access: [...d.access, ...add] };
+    return DEMO ? withCampuses(out, email) : out;
   }
+  if (!DEMO) return d;
   if (!extra && d.access.some((a) => a.email === email)) return d;
   const camp = person?.campus_code && CONFIG.campuses[person.campus_code] && !["CS", "SRV", "HW"].includes(person.campus_code) ? person.campus_code : "LV";
   const location_code = CAMPUS_CODES[camp] ?? "01";
@@ -492,7 +497,7 @@ function detail(budget, d, period, multi) {
     </section>` : ""}`;
 }
 
-function overview(budgets, access, d, email, campus) {
+function overview(budgets, access, d, email, campus, churchWide = false) {
   // Finance's rule: one supervisor row earns a roll-up, and it then adds every
   // budget they own or supervise. Viewer rows show in the list but never count.
   const mine = access.filter((a) => a.email === email && a.access_type !== "viewer");
@@ -501,7 +506,9 @@ function overview(budgets, access, d, email, campus) {
   const roll = counted.map((b) => totals(b.budget_id, d));
   const locations = [...new Map(budgets.map((b) => [b.location_code, b.location_name])).entries()]
     .sort((a, b) => a[0].localeCompare(b[0]));
-  const many = locations.length > 1;
+  // Church-wide leaders always get the All Cornerstone layout, even while only
+  // one campus has data loaded.
+  const many = locations.length > 1 || churchWide;
   const give = givingFor(campus, d);
   const spendLine = (p) => L.rollSpend(money(p.spent), money(p.planned), money(p.budget));
   const giveLine = (g) => L.rollGive(money(g.got), g.label, money(g.plan), money(g.annual));
@@ -603,7 +610,7 @@ export async function mountBudget(el, { sub, signedInEmail, viewingAsEmail, pers
     .map((a) => d.budgets.find((b) => b.budget_id === a.budget_id)?.location_code));
   const campus = view ? d.campus.filter((c) => supervised.has(c.location_code)) : d.campus;
   const picked = budgets.find((b) => b.budget_id === sub) ?? (budgets.length === 1 && !supervised.size ? budgets[0] : null);
-  if (!picked) { el.innerHTML = overview(budgets, d.access, d, email, campus); return; }
+  if (!picked) { el.innerHTML = overview(budgets, d.access, d, email, campus, /lead pastor|executive pastor/i.test(person?.title ?? "")); return; }
 
   const draw = () => {
     const last = Math.min(monthsIn(d.load), 12) - 1;

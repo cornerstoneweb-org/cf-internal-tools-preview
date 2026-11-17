@@ -1607,7 +1607,9 @@ async function start() {
 
 watchForNewVersion();
 if (PREVIEW) document.body.insertAdjacentHTML("beforeend",
-  `<div class="preview-badge" title="${esc(CONFIG.labels.previewBadgeNote)}">${esc(CONFIG.labels.previewBadge)}</div>`);
+  PREVIEW_HOSTS.includes(location.hostname)
+    ? `<div class="preview-badge" title="${esc(CONFIG.labels.previewBadgeNote)}">${esc(CONFIG.labels.previewBadge)}</div>`
+    : `<div class="preview-badge is-local">${esc(CONFIG.labels.localBadge)}</div>`);
 start();
 
 // Going somewhere clears the filter and closes search. Without this, an

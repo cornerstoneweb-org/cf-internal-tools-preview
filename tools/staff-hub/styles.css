@@ -1231,3 +1231,4 @@ body.is-viewing-as .preview-badge { bottom: 78px; }
   .preview-badge { font-size: .8rem; padding: 8px 16px; }
   body.is-viewing-as .preview-badge { bottom: 92px; }
 }
+.preview-badge.is-local { background: var(--jungle); color: #fff; }
